@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --version; npm --version; echo \"---\"; ls \"d:/Lenzro_Ecosystem/Clients/ISLII BARISTE/\")",
+      "Read(//d/Lenzro_Ecosystem/Clients/ISLII BARISTE/**)",
+      "Bash(npm ls *)",
+      "Bash(python -c \"import PIL; print\\('PIL', PIL.__version__\\)\")",
+      "Bash(python sheet.py)",
+      "Bash(python colors.py)",
+      "Bash(python -c ' *)",
+      "Bash(curl -s -o /dev/null -w '%{http_code}' -A 'Mozilla/5.0 \\(Windows NT 10.0\\) AppleWebKit/537.36 Chrome/120 Safari/537.36' 'https://fonts.googleapis.com/css2?family=Fraunces:SOFT,WONK,opsz,wght@0..100,0..1,9..144,300..700&family=Instrument+Sans:wght@400..600&display=swap')",
+      "Bash(echo 'HTTP: __CMDSUB_OUTPUT__')",
+      "Bash(curl -s -A 'Mozilla/5.0 \\(Windows NT 10.0\\) AppleWebKit/537.36 Chrome/120 Safari/537.36' 'https://fonts.googleapis.com/css2?family=Fraunces:SOFT,WONK,opsz,wght@0..100,0..1,9..144,300..700&family=Instrument+Sans:wght@400..600&display=swap')",
+      "Read(//c/Program Files \\\\\\(x86\\\\\\)/Microsoft/Edge/Application/**)",
+      "Read(//c/Program Files/Google/Chrome/Application/**)",
+      "Read(//c/Program Files \\\\\\(x86\\\\\\)/Google/Chrome/Application/**)",
+      "Bash(python real_sheet.py)",
+      "Bash(python optimize.py)",
+      "Bash(python dupes.py)",
+      "Bash(cd \"d:/Lenzro_Ecosystem/Clients/ISLII BARISTE/Website/public/images/islii\" && rm -f graduate-04-*.webp && echo \"removed duplicate derivatives\" && ls | wc -l)",
+      "Bash(python -)"
+    ],
+    "additionalDirectories": [
+      "D:\\Lenzro_Ecosystem\\Clients\\ISLII BARISTE\\Website"
+    ]
+  }
+}

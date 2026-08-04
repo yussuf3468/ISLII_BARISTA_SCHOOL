@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en-KE">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+    <!-- Colour the browser chrome to match the hero. Small detail, large effect
+         on mobile where the address bar sits directly against the page. -->
+    <meta name="theme-color" content="#120d0a" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#fcfaf5" media="(prefers-color-scheme: light)" />
+    <meta name="color-scheme" content="light" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- Fallback title/description. <Seo> overrides these per route the moment
+         React mounts; these exist for crawlers that don't execute JS and for
+         the brief window before hydration. -->
+    <title>ISLII Barista School — Become a World-Class Barista | Nairobi, Kenya</title>
+    <meta
+      name="description"
+      content="Kenya's premier professional barista academy. Master espresso, latte art, brewing, bubble tea and café operations with hands-on training built to international standards."
+    />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Open the TCP + TLS handshake to the font and image CDNs before the
+         parser reaches the requests that need them. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://images.unsplash.com" />
+
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:SOFT,WONK,opsz,wght@0..100,0..1,9..144,300..700&family=Instrument+Sans:wght@400..600&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:SOFT,WONK,opsz,wght@0..100,0..1,9..144,300..700&family=Instrument+Sans:wght@400..600&display=swap"
+    />
+
+    <!-- LCP candidate: the hero photograph. Fetched in parallel with the JS
+         bundle rather than after it, which is worth roughly 0.4s on hero paint.
+
+         These URLs must match what <Photo name="latteArtPour"> generates
+         BYTE FOR BYTE (same params, same order, same width ladder) — a preload
+         that differs by even one character is not a head start, it's a second
+         download of the same image. Cross-check against `photoSrc()` in
+         src/lib/images.ts if either side changes. -->
+    <link
+      rel="preload"
+      as="image"
+      fetchpriority="high"
+      href="https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&q=72&w=1920&h=1080"
+      imagesrcset="
+        https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&q=72&w=480&h=270 480w,
+        https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&q=72&w=768&h=432 768w,
+        https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&q=72&w=1024&h=576 1024w,
+        https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&q=72&w=1440&h=810 1440w,
+        https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&q=72&w=1920&h=1080 1920w,
+        https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&q=72&w=2560&h=1440 2560w"
+      imagesizes="100vw"
+    />
+  </head>
+
+  <body>
+    <!-- Paint the hero's colour immediately so first paint is espresso-dark
+         rather than white. Removed from the flow the instant React mounts. -->
+    <div id="root" style="background-color: #120d0a; min-height: 100dvh"></div>
+
+    <noscript>
+      <div style="padding: 3rem 1.5rem; font-family: system-ui, sans-serif; text-align: center">
+        <h1>ISLII Barista School</h1>
+        <p>
+          Kenya's premier professional barista academy — Nairobi. Training in espresso, latte art,
+          brewing, bubble tea, milkshakes and café operations.
+        </p>
+        <p>
+          This site needs JavaScript enabled. To enrol right now, call
+          <a href="tel:+254746487878">+254&nbsp;746&nbsp;487878</a> or message us on
+          <a href="https://wa.me/254746487878">WhatsApp</a>.
+        </p>
+      </div>
+    </noscript>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

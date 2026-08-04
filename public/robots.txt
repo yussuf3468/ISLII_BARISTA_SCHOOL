@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Nothing here is private; the whole site is meant to be indexed.
+Sitemap: https://isliibarista.com/sitemap.xml
