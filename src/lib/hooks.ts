@@ -78,15 +78,22 @@ export function useLockBodyScroll(locked: boolean): void {
   useEffect(() => {
     if (!locked) return;
 
-    const { overflow, paddingRight } = document.body.style;
-    const gap = window.innerWidth - document.documentElement.clientWidth;
+    // Locked on <html>, NOT <body>, and that distinction is load-bearing.
+    // A browser only propagates <body>'s overflow up to the viewport while
+    // <html>'s own overflow is `visible`. We set `overflow-x: clip` on <html>
+    // (to guarantee no sideways drag on phones), which switches propagation
+    // off — so `body { overflow: hidden }` silently stops locking anything.
+    // Setting it on the root element works regardless.
+    const root = document.documentElement;
+    const previous = root.style.overflow;
 
-    document.body.style.overflow = 'hidden';
-    if (gap > 0) document.body.style.paddingRight = `${gap}px`;
+    root.style.overflow = 'hidden';
 
+    // No scrollbar-width compensation is needed: `scrollbar-gutter: stable`
+    // in globals.css keeps the track reserved whether or not it is scrollable,
+    // so hiding overflow no longer changes the layout width.
     return () => {
-      document.body.style.overflow = overflow;
-      document.body.style.paddingRight = paddingRight;
+      root.style.overflow = previous;
     };
   }, [locked]);
 }

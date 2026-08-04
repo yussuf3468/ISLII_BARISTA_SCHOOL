@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Menu, X, Phone } from 'lucide-react';
 import { Logo } from './Logo';
 import { Button } from '@/components/ui/Button';
+import { CONTAINER } from '@/components/ui/Section';
 import { primaryNav } from '@/config/navigation';
 import { site } from '@/config/site';
 import { useScrollState, useLockBodyScroll, useFocusTrap } from '@/lib/hooks';
@@ -73,7 +74,15 @@ export function Header() {
             : 'border-b border-transparent bg-transparent',
         )}
       >
-        <div className="mx-auto flex h-20 max-w-[90rem] items-center justify-between px-gutter md:h-24">
+        <div
+          className={cn(
+            'mx-auto flex items-center justify-between px-gutter',
+            CONTAINER.default,
+            // Header height grows a little on very large displays so the bar
+            // doesn't look like a thin strip across a 4K panel.
+            'h-20 md:h-24 3xl:h-28',
+          )}
+        >
           <Logo tone={solid ? 'dark' : 'light'} />
 
           {/* ── Desktop navigation ───────────────────────────────────── */}

@@ -24,20 +24,29 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
 
-    <!-- Open the TCP + TLS handshake to the font and image CDNs before the
-         parser reaches the requests that need them. -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Open the TCP + TLS handshake to the image CDN before the parser
+         reaches the requests that need it. Fonts are same-origin now, so no
+         font preconnect is required. -->
     <link rel="preconnect" href="https://images.unsplash.com" />
 
+    <!-- Fonts are self-hosted (see src/styles/fonts.css). Preloading the two
+         latin files means they are in flight alongside the CSS rather than
+         being discovered after it parses — which is what removes the flash of
+         fallback text, and with it the reflow that flash causes.
+         Only the `latin` subsets are preloaded; latin-ext loads on demand. -->
     <link
       rel="preload"
-      as="style"
-      href="https://fonts.googleapis.com/css2?family=Fraunces:SOFT,WONK,opsz,wght@0..100,0..1,9..144,300..700&family=Instrument+Sans:wght@400..600&display=swap"
+      as="font"
+      type="font/woff2"
+      href="/fonts/fraunces-latin.woff2"
+      crossorigin
     />
     <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Fraunces:SOFT,WONK,opsz,wght@0..100,0..1,9..144,300..700&family=Instrument+Sans:wght@400..600&display=swap"
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/instrument-sans-latin.woff2"
+      crossorigin
     />
 
     <!-- LCP candidate: the hero photograph. Fetched in parallel with the JS

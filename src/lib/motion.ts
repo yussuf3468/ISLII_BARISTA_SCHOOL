@@ -117,8 +117,11 @@ export const viewportOnce = { once: true, amount: 0.25 } as const;
 export const viewportEarly = { once: true, amount: 0.1 } as const;
 
 /* ── Page transitions ─────────────────────────────────────────────────── */
+/* Entrance only — there is deliberately no `exit`. An exit animation keeps the
+   outgoing route mounted while it plays, emptying <main> before the new one
+   arrives, which makes the footer visibly jump up and back on every navigation.
+   Opacity only, and short: each route's own scroll reveals carry it from there. */
 export const pageTransition: Variants = {
-  initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0, transition: { duration: DURATION.base, ease: EASE_LUXE } },
-  exit: { opacity: 0, y: -8, transition: { duration: DURATION.instant, ease: EASE_SWIFT } },
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: DURATION.fast, ease: EASE_LUXE } },
 };

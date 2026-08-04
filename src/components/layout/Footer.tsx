@@ -3,6 +3,7 @@ import { Phone, Mail, MapPin, Clock, ArrowUpRight } from 'lucide-react';
 import { Logo } from './Logo';
 import { WhatsAppGlyph, TikTokGlyph, InstagramGlyph, FacebookGlyph } from '@/components/ui/Glyphs';
 import { Reveal } from '@/components/ui/Reveal';
+import { CONTAINER } from '@/components/ui/Section';
 import { primaryNav } from '@/config/navigation';
 import { courses } from '@/data/courses';
 import { site, whatsappLink, mapDirectionsUrl } from '@/config/site';
@@ -38,7 +39,7 @@ export function Footer() {
         ISLII
       </span>
 
-      <div className="relative mx-auto max-w-[90rem] px-gutter">
+      <div className={cn('relative mx-auto px-gutter', CONTAINER.default)}>
         {/* ── Main grid ─────────────────────────────────────────────── */}
         <div className="grid gap-14 py-20 md:py-24 lg:grid-cols-12 lg:gap-10">
           {/* Brand */}

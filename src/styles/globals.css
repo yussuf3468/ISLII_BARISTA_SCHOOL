@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './fonts.css';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    ISLII BARISTA SCHOOL — DESIGN SYSTEM
@@ -46,25 +47,36 @@
   --font-display: 'Fraunces', 'Playfair Display', ui-serif, Georgia, serif;
   --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  /* Fluid type scale — locked between 380px and 1536px viewports.
-     No media queries needed; these interpolate perfectly. */
-  --text-display-1: clamp(2.75rem, 0.942rem + 7.61vw, 8.25rem);
+  /* ── Fluid type scale ──────────────────────────────────────────────────
+     Interpolated between a 380px and a 1920px viewport — no media queries.
+
+     Two deliberate choices here:
+
+     · The top anchor is 1920px, not 1536px. Capping at 1536 meant a 2560px
+       or 3440px display got exactly the same headline size as a laptop, which
+       makes an ultrawide look like a laptop layout stranded in a big window.
+
+     · The bottom anchor targets 320px (iPhone SE), not 380px. At 320px the
+       container leaves ~280px of usable width, and "World-Class" set at 44px
+       needed ~252px of it — close enough to the edge that any wider glyph
+       would have clipped. 40px leaves real headroom. */
+  --text-display-1: clamp(2.5rem, 0.775rem + 7.27vw, 9.5rem);
   --text-display-1--line-height: 0.92;
   --text-display-1--letter-spacing: -0.035em;
 
-  --text-display-2: clamp(2.25rem, 1.017rem + 5.19vw, 6rem);
+  --text-display-2: clamp(2.125rem, 0.894rem + 5.19vw, 7.25rem);
   --text-display-2--line-height: 0.96;
   --text-display-2--letter-spacing: -0.03em;
 
-  --text-heading-1: clamp(1.875rem, 1.177rem + 2.94vw, 4rem);
+  --text-heading-1: clamp(1.75rem, 1.103rem + 2.73vw, 4.5rem);
   --text-heading-1--line-height: 1.04;
   --text-heading-1--letter-spacing: -0.025em;
 
-  --text-heading-2: clamp(1.5rem, 1.171rem + 1.38vw, 2.5rem);
+  --text-heading-2: clamp(1.5rem, 1.191rem + 1.30vw, 2.75rem);
   --text-heading-2--line-height: 1.15;
   --text-heading-2--letter-spacing: -0.02em;
 
-  --text-lead: clamp(1.0625rem, 0.96rem + 0.43vw, 1.375rem);
+  --text-lead: clamp(1.0625rem, 0.97rem + 0.39vw, 1.4375rem);
   --text-lead--line-height: 1.6;
 
   --text-eyebrow: 0.6875rem;
@@ -81,9 +93,16 @@
   --animate-shimmer: shimmer 2.4s linear infinite;
   --animate-marquee: marquee 42s linear infinite;
 
+  /* ── Breakpoints ─────────────────────────────────────────────────────
+     Tailwind stops at 2xl (1536px). Large desktops, ultrawides and 4K panels
+     all land in the same bucket above that, so two more tiers are added for
+     the container and grid widths to respond to. */
+  --breakpoint-3xl: 120rem; /* 1920px — large desktop / 1080p full-screen */
+  --breakpoint-4xl: 160rem; /* 2560px — 1440p, ultrawide, 4K */
+
   /* ── Layout rhythm ───────────────────────────────────────────────────── */
-  --spacing-section: clamp(5rem, 3rem + 8vw, 11rem);
-  --spacing-gutter: clamp(1.25rem, 0.5rem + 3vw, 4rem);
+  --spacing-section: clamp(5rem, 3.025rem + 8.31vw, 13rem);
+  --spacing-gutter: clamp(1.25rem, 0.5rem + 3vw, 5rem);
 
   /* ── Shadows: warm, never grey ───────────────────────────────────────── */
   --shadow-lift: 0 1px 2px rgb(26 22 20 / 0.04), 0 8px 24px -8px rgb(26 22 20 / 0.1);
@@ -135,6 +154,21 @@
     scroll-behavior: smooth;
     /* Offset anchor jumps so the fixed header never covers a heading. */
     scroll-padding-top: 6rem;
+    /* Belt-and-braces with the rule on <body>. The marquees and over-scaled
+       parallax layers are individually clipped, but their content still counts
+       toward documentElement.scrollWidth — clipping here guarantees the page
+       can never be dragged sideways on a phone.
+       `clip` rather than `hidden` on purpose: `hidden` would turn the root into
+       a scroll container and silently break every `position: sticky` on the
+       site (the course sidebar, the FAQ panel). `clip` does not. */
+    overflow-x: clip;
+
+    /* Reserve the scrollbar track permanently.
+       Without this, navigating from a long page (Home) to a short one (FAQ)
+       removes the scrollbar, the viewport widens by ~15px, and every centred
+       element jumps sideways. That is the "twitch" visible on desktop, and it
+       fires on every single route change. */
+    scrollbar-gutter: stable;
   }
 
   body {

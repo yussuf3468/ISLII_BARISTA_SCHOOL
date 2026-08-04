@@ -101,7 +101,10 @@ export default function Gallery() {
           </p>
 
           {/* ── Masonry ─────────────────────────────────────────────── */}
-          <div className="columns-2 gap-3 md:columns-3 md:gap-4 xl:columns-4">
+          {/* Column count keeps climbing past Tailwind's 2xl — at 2560px+ a
+              four-column masonry produces enormous tiles and only a handful of
+              photos above the fold. */}
+          <div className="columns-2 gap-3 md:columns-3 md:gap-4 xl:columns-4 3xl:columns-5 4xl:columns-6">
             {visible.map((item, i) => (
               <motion.div
                 // Keying on filter forces a fresh mount per category, so the

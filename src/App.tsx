@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -24,7 +24,7 @@ const NotFound = lazy(() => import('@/pages/NotFound'));
 /** Neutral espresso panel shown while a route chunk downloads. */
 function RouteFallback() {
   return (
-    <div className="grid min-h-dvh place-items-center bg-espresso-950" role="status" aria-live="polite">
+    <div className="grid min-h-svh place-items-center bg-espresso-950" role="status" aria-live="polite">
       <span className="sr-only">Loading page</span>
       <span
         aria-hidden="true"
@@ -34,9 +34,21 @@ function RouteFallback() {
   );
 }
 
+/**
+ * Route entrance.
+ *
+ * This deliberately does NOT use <AnimatePresence mode="wait">. With an exit
+ * animation, the outgoing page stays mounted while it fades, then unmounts —
+ * leaving <main> momentarily empty. The footer snaps up to fill the gap and
+ * drops back down when the new page mounts, so every navigation produced a
+ * visible collapse-and-expand of the whole page.
+ *
+ * Mounting the new route immediately and fading it in has no such gap. The
+ * transition is shorter, and the page never changes height on its own.
+ */
 function AnimatedPage({ children }: { children: React.ReactNode }) {
   return (
-    <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit">
+    <motion.div variants={pageTransition} initial="initial" animate="animate">
       {children}
     </motion.div>
   );
@@ -53,20 +65,17 @@ export default function App() {
 
       <main id="main">
         <Suspense fallback={<RouteFallback />}>
-          {/* mode="wait" lets the outgoing page finish before the next enters —
-              without it the two overlap and the page visibly doubles. */}
-          <AnimatePresence mode="wait" initial={false}>
-            <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<AnimatedPage><Home /></AnimatedPage>} />
-              <Route path="/about" element={<AnimatedPage><About /></AnimatedPage>} />
-              <Route path="/courses" element={<AnimatedPage><Courses /></AnimatedPage>} />
-              <Route path="/courses/:slug" element={<AnimatedPage><CourseDetail /></AnimatedPage>} />
-              <Route path="/gallery" element={<AnimatedPage><Gallery /></AnimatedPage>} />
-              <Route path="/faq" element={<AnimatedPage><Faq /></AnimatedPage>} />
-              <Route path="/contact" element={<AnimatedPage><Contact /></AnimatedPage>} />
-              <Route path="*" element={<AnimatedPage><NotFound /></AnimatedPage>} />
-            </Routes>
-          </AnimatePresence>
+          {/* Keyed on pathname so each route remounts and replays its entrance. */}
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={<AnimatedPage><Home /></AnimatedPage>} />
+            <Route path="/about" element={<AnimatedPage><About /></AnimatedPage>} />
+            <Route path="/courses" element={<AnimatedPage><Courses /></AnimatedPage>} />
+            <Route path="/courses/:slug" element={<AnimatedPage><CourseDetail /></AnimatedPage>} />
+            <Route path="/gallery" element={<AnimatedPage><Gallery /></AnimatedPage>} />
+            <Route path="/faq" element={<AnimatedPage><Faq /></AnimatedPage>} />
+            <Route path="/contact" element={<AnimatedPage><Contact /></AnimatedPage>} />
+            <Route path="*" element={<AnimatedPage><NotFound /></AnimatedPage>} />
+          </Routes>
         </Suspense>
       </main>
 

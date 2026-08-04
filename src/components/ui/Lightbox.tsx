@@ -21,8 +21,8 @@ export interface LightboxProps {
  *    · role="dialog" + aria-modal, labelled by the current caption
  *    · Focus is trapped inside while open and restored to the trigger on close
  *    · Escape closes; ← / → navigate
- *    · Background scroll is locked, with scrollbar-width compensation so the
- *      page doesn't jolt sideways as it opens
+ *    · Background scroll is locked on the root element (see useLockBodyScroll),
+ *      and `scrollbar-gutter: stable` means opening it shifts nothing sideways
  *    · The backdrop is a real <button> so it's reachable without a mouse
  * ─────────────────────────────────────────────────────────────────────────────
  */
@@ -114,7 +114,7 @@ export function Lightbox({ items, index, onClose, onNavigate }: LightboxProps) {
           {/* Stage */}
           <motion.figure
             key={index}
-            className="relative z-[1] mx-auto flex max-h-[88dvh] w-[min(92vw,72rem)] flex-col items-center gap-5"
+            className="relative z-[1] mx-auto flex max-h-[88svh] w-[min(92vw,72rem)] flex-col items-center gap-5 3xl:w-[min(88vw,88rem)]"
             initial={{ opacity: 0, scale: 0.97, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.98 }}
@@ -125,7 +125,7 @@ export function Lightbox({ items, index, onClose, onNavigate }: LightboxProps) {
               srcSet={photo.srcSet}
               sizes="92vw"
               alt={photo.alt}
-              className="max-h-[76dvh] w-auto rounded-sm object-contain shadow-[0_40px_120px_-20px_rgba(0,0,0,0.8)]"
+              className="max-h-[76svh] w-auto rounded-sm object-contain shadow-[0_40px_120px_-20px_rgba(0,0,0,0.8)]"
             />
             <figcaption className="text-center">
               {current.category && (

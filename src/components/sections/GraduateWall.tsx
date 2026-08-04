@@ -27,7 +27,10 @@ import { site } from '@/config/site';
  */
 export function GraduateWall() {
   return (
-    <section className="on-dark grain relative overflow-hidden bg-espresso-900 py-section">
+    // Full section rhythm on top, tightened underneath: the closing CTA row is
+    // visually light, so a full 11rem of padding below it read as dead space
+    // rather than breathing room.
+    <section className="on-dark grain relative overflow-hidden bg-espresso-900 pb-16 pt-section md:pb-20">
       <Container>
         <div className="mb-14 max-w-3xl md:mb-18">
           <Reveal>

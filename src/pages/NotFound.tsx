@@ -20,7 +20,7 @@ export default function NotFound() {
         noindex
       />
 
-      <section className="on-dark grain relative isolate flex min-h-dvh items-center overflow-hidden bg-espresso-950">
+      <section className="on-dark grain relative isolate flex min-h-svh items-center overflow-hidden bg-espresso-950">
         <div className="absolute inset-0 -z-20">
           <Photo
             name="espressoOverheadDark"

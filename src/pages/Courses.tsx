@@ -54,7 +54,7 @@ export default function Courses() {
             >
               <CourseCard
                 course={course}
-                size={course.isBundle ? 'feature' : 'default'}
+                size={course.isBundle ? 'wide' : 'default'}
                 className="h-full"
               />
             </RevealItem>

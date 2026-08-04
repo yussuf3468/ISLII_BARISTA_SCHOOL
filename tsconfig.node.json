@@ -10,7 +10,15 @@
     "moduleDetection": "force",
     "noEmit": true,
     "strict": true,
-    "types": ["node"]
+    "types": ["node"],
+
+    // vite.config.ts imports the route + course data so the sitemap plugin can
+    // generate from a single source of truth. That pulls `src/**` into this
+    // project, so the `@/*` alias has to resolve here too.
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
   "include": ["vite.config.ts"]
 }

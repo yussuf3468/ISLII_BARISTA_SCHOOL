@@ -29,7 +29,7 @@ import { EASE_LUXE } from '@/lib/motion';
  */
 export function Hero() {
   return (
-    <section className="on-dark grain relative isolate flex min-h-dvh flex-col justify-end overflow-hidden bg-espresso-950">
+    <section className="on-dark grain relative isolate flex min-h-svh flex-col justify-end overflow-hidden bg-espresso-950">
       {/* Layer 1 — photograph */}
       <ParallaxImage speed={0.1} className="absolute inset-0 -z-20">
         <Photo
@@ -66,7 +66,11 @@ export function Hero() {
 
       {/* Layer 4 — content */}
       <Container className="relative z-10 pb-16 pt-36 md:pb-20 md:pt-40">
-        <div className="max-w-4xl">
+        {/* The measure has to grow with the type. Once display-1 reaches its
+            9.5rem cap, "World-Class Barista" needs ~1150px to stay on one line
+            — so a fixed 56rem column would push it to three lines on exactly
+            the large displays where there is the most room. */}
+        <div className="max-w-4xl 3xl:max-w-[80rem] 4xl:max-w-[88rem]">
           {/* Eyebrow */}
           {/* `flex-wrap` + `min-w-0` matter more than they look. A flex item
               defaults to `min-width: auto`, so this heavily letter-spaced line

@@ -41,6 +41,24 @@ export function Eyebrow({
 
 /* ── Container ───────────────────────────────────────────────────────── */
 
+/**
+ * Container widths, exported so the header and footer share the exact same
+ * measure as page content. If these drift apart, the logo stops aligning with
+ * the first section on wide screens — a small misalignment that reads as
+ * sloppiness on a large display.
+ *
+ * They step up twice above Tailwind's 2xl. A 1440px measure centred in a
+ * 3440px ultrawide leaves ~1000px of dead gutter on each side and makes the
+ * whole site look like it was designed for a laptop and left there. Widening
+ * to ~1824px keeps generous margins (which suit the brand) without the layout
+ * looking abandoned in the middle of the screen.
+ */
+export const CONTAINER = {
+  narrow: 'max-w-3xl 3xl:max-w-4xl',
+  default: 'max-w-[90rem] 3xl:max-w-[102rem] 4xl:max-w-[114rem]',
+  wide: 'max-w-[104rem] 3xl:max-w-[120rem] 4xl:max-w-[140rem]',
+} as const;
+
 export function Container({
   children,
   className,
@@ -49,20 +67,10 @@ export function Container({
   children: ReactNode;
   className?: string;
   /** `narrow` for prose, `default` for most, `wide` for full-bleed grids. */
-  size?: 'narrow' | 'default' | 'wide';
+  size?: keyof typeof CONTAINER;
 }) {
   return (
-    <div
-      className={cn(
-        'mx-auto w-full px-gutter',
-        size === 'narrow' && 'max-w-3xl',
-        size === 'default' && 'max-w-[90rem]',
-        size === 'wide' && 'max-w-[104rem]',
-        className,
-      )}
-    >
-      {children}
-    </div>
+    <div className={cn('mx-auto w-full px-gutter', CONTAINER[size], className)}>{children}</div>
   );
 }
 

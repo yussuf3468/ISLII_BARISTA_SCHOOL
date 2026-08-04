@@ -17,23 +17,36 @@ import { cn } from '@/lib/utils';
  *  the "Explore" affordance is decorative text, not a second button.
  * ─────────────────────────────────────────────────────────────────────────────
  */
+export type CourseCardSize = 'default' | 'feature' | 'wide';
+
 export function CourseCard({
   course,
-  /** `feature` gives the card a taller image and larger type. */
+  /**
+   * `default` — one column of the grid.
+   * `feature` — two columns; taller image, larger type.
+   * `wide`    — the FULL grid width, laid out horizontally.
+   *
+   * `wide` exists because a full-width card stacked vertically produces an
+   * absurd result: at 1440px a 4:3 image becomes a ~1390×1040px slab that
+   * pushes every word of the card below the fold. Once a card is wider than it
+   * is tall, the image belongs beside the text, not above it.
+   */
   size = 'default',
   className,
 }: {
   course: Course;
-  size?: 'default' | 'feature';
+  size?: CourseCardSize;
   className?: string;
 }) {
   const feature = size === 'feature';
+  const wide = size === 'wide';
 
   return (
     <Link
       to={`/courses/${course.slug}`}
       className={cn(
-        'group relative flex flex-col overflow-hidden rounded-sm bg-linen',
+        'group relative flex overflow-hidden rounded-sm bg-linen',
+        wide ? 'flex-col md:flex-row' : 'flex-col',
         'ring-1 ring-coffee-400/15 transition-all duration-500 ease-luxe',
         'hover:-translate-y-1.5 hover:shadow-raise hover:ring-coffee-400/30',
         'motion-reduce:hover:translate-y-0',
@@ -42,15 +55,20 @@ export function CourseCard({
       aria-label={`${course.title} — ${course.duration}, ${course.level}`}
     >
       {/* Image */}
-      <div className="relative overflow-hidden">
+      <div className={cn('relative overflow-hidden', wide && 'md:w-[44%] md:shrink-0')}>
         <Photo
           name={course.photo}
-          ratio={feature ? 4 / 3 : 3 / 2}
-          width={feature ? 1200 : 900}
-          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+          ratio={wide ? 4 / 3 : feature ? 4 / 3 : 3 / 2}
+          width={wide ? 1100 : feature ? 1200 : 900}
+          sizes={
+            wide
+              ? '(max-width: 768px) 100vw, 44vw'
+              : '(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw'
+          }
           zoom
           overlay="soft"
           alt=""
+          className={wide ? 'md:h-full' : undefined}
         />
 
         {/* Course number, set into the image corner. */}
@@ -69,17 +87,37 @@ export function CourseCard({
       </div>
 
       {/* Body */}
-      <div className="flex flex-1 flex-col p-6 md:p-7">
+      <div
+        className={cn(
+          'flex flex-1 flex-col p-6 md:p-7',
+          wide && 'md:justify-center md:p-10 lg:p-12',
+        )}
+      >
+        {course.overline && (
+          <span className="mb-3 font-sans text-[0.625rem] uppercase tracking-[0.2em] text-gold-600">
+            {course.overline}
+          </span>
+        )}
+
         <h3
           className={cn(
             'text-espresso-950 transition-colors duration-300 group-hover:text-coffee-500',
-            feature ? 'text-heading-2' : 'font-display text-2xl leading-tight',
+            wide
+              ? 'text-heading-1'
+              : feature
+                ? 'text-heading-2'
+                : 'font-display text-2xl leading-tight',
           )}
         >
           {course.title}
         </h3>
 
-        <p className="mt-3 flex-1 font-sans text-[0.9375rem] leading-relaxed text-coffee-500">
+        <p
+          className={cn(
+            'mt-3 font-sans leading-relaxed text-coffee-500',
+            wide ? 'max-w-xl text-lead' : 'flex-1 text-[0.9375rem]',
+          )}
+        >
           {course.kicker}
         </p>
 
