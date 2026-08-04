@@ -28,9 +28,9 @@ Everything below is a real value that needs confirming. Search the codebase for
 | 6 | **Mojito / Piña Colada** | `src/data/courses.ts` | Written as the **non-alcoholic** café versions. Say the word if that's wrong. |
 | 7 | **Instagram / Facebook** | `src/config/site.ts` → `social` | Empty, so the icons are hidden. Add URLs and they appear automatically. |
 
-Confirmed and already live: email `isliibaristaschool@gmail.com`, call line
-`+254 746 487 878`, WhatsApp line `+254 723 553 153`, TikTok, 500+ students,
-opened 2024, and all six programmes with brochure durations.
+Confirmed and already live: email `isliibaristaschool@gmail.com`, one number for
+both calls and WhatsApp (`+254 746 487 878`), TikTok, 500+ students, opened
+2024, and all six programmes with brochure durations.
 
 ---
 
