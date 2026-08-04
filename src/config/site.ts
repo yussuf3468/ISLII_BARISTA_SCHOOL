@@ -60,7 +60,7 @@ export const site = {
 
   /** The WhatsApp business line — a different number to the call line. */
   whatsapp: {
-    display: '+254 723 553 153',
+    display: '+254 746 487 878',
     e164: WHATSAPP_E164,
   },
 
