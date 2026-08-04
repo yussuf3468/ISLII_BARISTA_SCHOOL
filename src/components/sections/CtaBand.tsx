@@ -4,6 +4,7 @@ import { Reveal } from '@/components/ui/Reveal';
 import { MaskedText } from '@/components/ui/MaskedText';
 import { Container } from '@/components/ui/Section';
 import { WhatsAppGlyph } from '@/components/ui/Glyphs';
+import { Crest } from '@/components/layout/Logo';
 import { site, whatsappLink } from '@/config/site';
 
 /**
@@ -57,8 +58,15 @@ export function CtaBand({
           taut and decisive, not cavernous. */}
       <Container className="relative py-16 md:py-20 lg:py-24">
         <div className="mx-auto max-w-3xl text-center">
-          <Reveal>
-            <span className="inline-flex items-center gap-3 font-sans text-eyebrow font-medium uppercase text-gold-400">
+          {/* The crest as a closing seal. It sits directly in the gold bloom,
+              which is what gives the badge somewhere to sit rather than
+              floating on flat black. */}
+          <Reveal variant="scale">
+            <Crest className="mx-auto w-20 md:w-24" sizes="(min-width: 768px) 96px, 80px" />
+          </Reveal>
+
+          <Reveal index={1}>
+            <span className="mt-6 inline-flex items-center gap-3 font-sans text-eyebrow font-medium uppercase text-gold-400">
               <span aria-hidden="true" className="h-px w-8 bg-gold-400/50" />
               Enrol Now
               <span aria-hidden="true" className="h-px w-8 bg-gold-400/50" />

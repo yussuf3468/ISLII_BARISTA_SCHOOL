@@ -76,6 +76,42 @@ The camera originals are preserved in **`media-originals/`**, deliberately
 optimiser, then add an entry to `PHOTOS` in `src/lib/images.ts` with
 `kind: 'islii'`.
 
+### The crest
+
+The school's crest was supplied as a **photograph of the printed backdrop on a
+wall** — yellow wall visible top and bottom, off-white paper with a lavender
+colour cast, a drop shadow and visible creases. It could not be used as-is, so
+it was extracted:
+
+1. background lifted with an edge-seeded flood fill (not a white threshold —
+   the crest contains its own cream lettering, which a threshold would have
+   punched holes through)
+2. every component above a minimum area kept, so the star above the shield
+   survives while wall specks are dropped
+3. the cut eroded ~4px so it sits inside the crest's dark keyline, removing the
+   white matting halo that otherwise fringed every contour on the dark header
+4. the paper crease under the shield trimmed
+5. colour cast corrected by white-balancing against the **paper**, not
+   grey-world — the crest is deliberately brown and gold, and a grey-world
+   balance strips exactly that warmth out
+
+Result: `public/brand/islii-crest-{256,512,1024}.webp`, transparent, 26 KB at
+header size (the equivalent PNG was 1.4 MB).
+
+The full-resolution transparent **PNG master** is in
+`media-originals/islii-crest-transparent-master.png` — hand that to the client,
+it's reusable for print, social and signage. The original wall photo is kept
+alongside it as `logo-backdrop-photo.jpg`.
+
+Where it appears: header and footer (locked up with the wordmark), the About
+panel on the home page, the closing CTA seal on every page, the
+apple-touch-icon, and the OG share image.
+
+> The favicon stays as the gold coffee-bean mark (`public/favicon.svg`). At
+> 16–32px the crest's detail collapses into a brown smudge, whereas the bean
+> reads cleanly and uses the same brand palette. Swap it if the client prefers
+> the crest at any cost.
+
 ### Stock photography
 
 Craft and product shots (espresso pours, latte art, boba, pastry) use licensed

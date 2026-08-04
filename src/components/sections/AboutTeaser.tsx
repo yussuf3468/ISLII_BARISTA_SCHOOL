@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { Reveal } from '@/components/ui/Reveal';
 import { Parallax } from '@/components/ui/Parallax';
 import { Container, Eyebrow } from '@/components/ui/Section';
+import { Crest } from '@/components/layout/Logo';
 
 const pillars = [
   'Live commercial equipment from day one',
@@ -53,13 +54,13 @@ export function AboutTeaser() {
               />
             </Parallax>
 
-            {/* Est. badge */}
-            <div className="absolute -left-3 top-8 hidden rounded-sm bg-espresso-950 px-5 py-4 text-center shadow-raise lg:block">
-              <span className="block font-sans text-[0.5625rem] uppercase tracking-[0.24em] text-gold-500/80">
-                Established
-              </span>
-              <span className="mt-1 block font-display text-2xl leading-none text-cream-50 tabular">
-                2024
+            {/* The school's real crest, floated over the classroom photograph.
+                This is the badge students are certified under and photographed
+                against, so it belongs here rather than as generic decoration. */}
+            <div className="absolute -left-4 top-6 hidden rounded-sm bg-espresso-950/95 p-4 text-center shadow-raise backdrop-blur-sm lg:block xl:-left-8">
+              <Crest className="w-24 xl:w-28" sizes="(min-width: 1280px) 112px, 96px" />
+              <span className="mt-2 block font-sans text-[0.5rem] uppercase tracking-[0.22em] text-gold-500/80">
+                Established 2024
               </span>
             </div>
           </div>
