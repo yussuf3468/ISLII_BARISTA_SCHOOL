@@ -4,14 +4,13 @@ import { FaqSection } from '@/components/sections/FaqSection';
 import { CtaBand } from '@/components/sections/CtaBand';
 import { faqs } from '@/data/faq';
 import { faqSchema, organizationSchema, breadcrumbSchema } from '@/lib/schema';
+import { PAGE_SEO } from '@/config/seo';
 
 export default function Faq() {
   return (
     <>
       <Seo
-        title="Frequently Asked Questions"
-        description="Fees, enrolment, class sizes, equipment, certification and careers — everything prospective students ask before joining ISLII Barista School in Nairobi."
-        path="/faq"
+        {...PAGE_SEO.faq}
         jsonLd={[
           organizationSchema(),
           // Drives the expandable Q&A that can appear directly in Google results.

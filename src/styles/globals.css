@@ -38,6 +38,38 @@
   /* ── Colour: Neutral ─────────────────────────────────────────────────── */
   --color-charcoal: #1a1614;
 
+  /* Real device inset, 0 everywhere that has no notch. Used so sheets and
+     floating bars never sit under a home indicator. */
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* ── Colour: Slate (the ADMIN scale) ──────────────────────────────────
+     The marketing site is warm on purpose — espresso, coffee, cream, gold.
+     The admin is not, and this scale exists because painting it warm was a
+     mistake worth naming: when every label, hairline, shadow and background
+     across a dense screen carries a brown cast, the result does not read as
+     "on brand", it reads as SEPIA — like a rusted or badly-lit interface.
+
+     Warmth works on a marketing page because it lands on a few large elements
+     against photography. An admin screen is hundreds of small ones, and the
+     cast compounds.
+
+     So: chrome is neutral, content is neutral, and the brand appears as gold
+     on the two or three things per screen that genuinely deserve it — the
+     active nav item, a focus ring, the chart mark. Restraint is what makes
+     the accent read as valuable rather than as a tint. */
+  --color-slate-50: #fafafa;
+  --color-slate-100: #f4f4f5;
+  --color-slate-150: #ededee;
+  --color-slate-200: #e4e4e7;
+  --color-slate-300: #d4d4d8;
+  --color-slate-400: #a1a1aa;
+  --color-slate-500: #71717a;
+  --color-slate-600: #52525b;
+  --color-slate-700: #3f3f46;
+  --color-slate-800: #27272a;
+  --color-slate-900: #18181b;
+  --color-slate-950: #0e0e11;
+
   /* ── Semantic aliases ────────────────────────────────────────────────── */
   --color-ink: var(--color-espresso-950);
   --color-surface: var(--color-linen);
@@ -126,6 +158,14 @@
   }
   to {
     background-position: -200% 0;
+  }
+}
+
+/* Skeleton sweep — a travelling highlight rather than a pulsing opacity.
+   A pulse reads as a broken element; a sweep reads as work in progress. */
+@keyframes shimmer-sweep {
+  100% {
+    transform: translateX(100%);
   }
 }
 
@@ -348,3 +388,95 @@
 }
 
 /* The native pointer is deliberately left untouched — no custom cursor. */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   POINTER AFFORDANCE
+   ───────────────────────────────────────────────────────────────────────────
+   Tailwind v3's preflight set `cursor: pointer` on buttons. v4 dropped it to
+   match the browser default, where <button> is `cursor: default` — so every
+   button in this app silently lost its pointer when the project moved to v4.
+   Nothing looks broken, which is exactly why it goes unnoticed: the control
+   still works, it just stops *announcing* that it is a control, and the whole
+   interface reads a little dead under the hand.
+
+   Restored here rather than by adding `cursor-pointer` to a hundred class
+   lists, because the next component anyone writes would miss it again.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@layer base {
+  button,
+  summary,
+  label[for],
+  select,
+  [role='button'],
+  [role='tab'],
+  [role='option'],
+  [role='menuitem'],
+  [role='radio'],
+  [role='checkbox'],
+  [role='switch'] {
+    cursor: pointer;
+  }
+
+  /* A disabled control should say "not this", not "click me". */
+  button:disabled,
+  select:disabled,
+  input:disabled,
+  textarea:disabled,
+  [aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+
+  /* Text inputs keep the I-beam — the rule above must not reach them via a
+     wrapping label. */
+  input:not([type='checkbox']):not([type='radio']):not([type='button']):not([type='submit']):not([type='file']),
+  textarea {
+    cursor: auto;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ADMIN UTILITIES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* A scrollable region with no visible scrollbar.
+   Styling a scrollbar to look good across Chrome, Safari and Firefox is a
+   losing game — every engine renders the track differently and a thin grey bar
+   on a near-black sidebar reads as a rendering artefact. So the bar is removed
+   entirely and the affordance is carried by a fade mask instead (`.fade-y`),
+   which is how Linear, Notion and macOS itself signal "more below". */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+}
+
+/* Softens the top and bottom edge of a scroll container so content dissolves
+   rather than being guillotined by the container edge. Purely a mask, so it
+   costs no layout and never intercepts a click. */
+@utility fade-y {
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 14px,
+    #000 calc(100% - 18px),
+    transparent 100%
+  );
+}
+
+/* Comfortable tap target without changing visual size — the 44×44 minimum
+   applies to the *touch* area, not the ink. */
+@utility tap-44 {
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 50% 50% 50% 50%;
+    min-width: 44px;
+    min-height: 44px;
+    transform: translate(-50%, -50%);
+  }
+}

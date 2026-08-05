@@ -12,7 +12,7 @@ import { FaqSection } from '@/components/sections/FaqSection';
 import { CtaBand } from '@/components/sections/CtaBand';
 import { organizationSchema, websiteSchema, courseListSchema } from '@/lib/schema';
 import { courses } from '@/data/courses';
-import { site } from '@/config/site';
+import { PAGE_SEO } from '@/config/seo';
 
 /**
  * Home page.
@@ -37,9 +37,7 @@ export default function Home() {
   return (
     <>
       <Seo
-        title={`${site.name} — Become a World-Class Barista | Nairobi, Kenya`}
-        description={site.description}
-        path="/"
+        {...PAGE_SEO.home}
         jsonLd={[organizationSchema(), websiteSchema(), courseListSchema(courses)]}
       />
 

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { WhatsAppGlyph } from '@/components/ui/Glyphs';
 import { courses, getCourseBySlug, getIncludedCourses } from '@/data/courses';
 import { site, whatsappLink, formatKes } from '@/config/site';
+import { courseSeo } from '@/config/seo';
 import { courseSchema, organizationSchema, breadcrumbSchema } from '@/lib/schema';
 
 export default function CourseDetail() {
@@ -41,9 +42,7 @@ export default function CourseDetail() {
   return (
     <>
       <Seo
-        title={`${course.title} — ${course.duration}`}
-        description={course.overview.slice(0, 300)}
-        path={`/courses/${course.slug}`}
+        {...courseSeo(course)}
         type="article"
         jsonLd={[
           organizationSchema(),

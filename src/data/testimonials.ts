@@ -2,21 +2,36 @@
  * ─────────────────────────────────────────────────────────────────────────────
  *  TESTIMONIALS
  * ─────────────────────────────────────────────────────────────────────────────
- *  ⚠️  TODO_CLIENT — EVERY QUOTE BELOW IS PLACEHOLDER COPY.
- *      These are written in the register real graduates speak in, so the design
- *      is honest about the space it needs. They are NOT real student quotes and
- *      must be replaced with genuine, permissioned testimonials before launch.
+ *  `testimonials` is EMPTY, and the section does not render until it is filled.
+ *  That is the intended shipping state, not an oversight.
+ *
+ *  The quotes below are ours. They were written so the design could be built
+ *  and reviewed against realistic copy, and they are attributed to people who
+ *  do not exist. Publishing invented testimonials misleads someone choosing
+ *  where to spend real money on their training, and in many jurisdictions —
+ *  Kenya's Consumer Protection Act among them — it is also unlawful. A
+ *  `TODO_CLIENT` comment would not have stopped the site going live with them.
+ *
+ *  So they are kept as DRAFT_EXAMPLES: a format guide and a length reference,
+ *  wired to nothing. Move real, permissioned quotes into `testimonials` and the
+ *  section appears with no other change.
+ *
+ *  ── What to collect ───────────────────────────────────────────────────────
+ *  · The quote, in the graduate's own words, with their written permission
+ *  · Their name (a first name and initial is fine)
+ *  · Where they are NOW — "Barista, café in Westlands" is the proof point that
+ *    makes a quote persuasive; without it a quote is just praise
+ *  · Which programme they completed
+ *  · Optionally a portrait: set `photo` and the card renders it instead of the
+ *    monogram, no component changes needed
  *
  *  ── A deliberate design decision ──────────────────────────────────────────
- *  These cards are typographic, using a gold monogram rather than a portrait.
- *
- *  The brief asked for photography here, and with real graduates it absolutely
- *  should have it — the `photo` field is already wired for exactly that. But
- *  attaching stock portraits of real, identifiable people to invented quotes
- *  and invented names would be a misrepresentation, and it is the one shortcut
- *  on this build that could actually cause harm. Monograms read as considered
- *  editorial restraint (it is how Stripe and Linear present testimonials), so
- *  the design loses nothing while it waits for the real thing.
+ *  The cards are typographic, using a gold monogram rather than a portrait.
+ *  With real graduates they should absolutely have photography. But attaching
+ *  stock portraits of real, identifiable people to invented quotes and invented
+ *  names is the one shortcut on this build that could genuinely cause harm.
+ *  Monograms read as considered editorial restraint, so the design loses
+ *  nothing while it waits for the real thing.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
@@ -34,7 +49,7 @@ export interface Testimonial {
   photo?: PhotoKey;
 }
 
-export const testimonials: readonly Testimonial[] = [
+const DRAFT_EXAMPLES: readonly Testimonial[] = [
   {
     quote:
       'I came in able to make coffee and left able to run a bar. The difference was the pressure — by week four they had us on timed service and I stopped panicking. I was hired two weeks after my certificate.',
@@ -85,3 +100,14 @@ export const testimonials: readonly Testimonial[] = [
     course: 'Full Barista Course',
   },
 ] as const;
+
+/**
+ * Real, permissioned graduate testimonials. Empty until the school supplies
+ * them; `<Testimonials>` returns null while it is, so the page simply flows
+ * from the courses straight to the call to action.
+ */
+export const testimonials: readonly Testimonial[] = [];
+
+// Referenced so the drafts are not dropped by tree-shaking or flagged as dead
+// code — they are documentation for whoever fills the array above.
+export const TESTIMONIAL_DRAFT_COUNT = DRAFT_EXAMPLES.length;

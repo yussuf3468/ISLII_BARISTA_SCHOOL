@@ -12,6 +12,7 @@ import { PHOTOS } from '@/lib/images';
 import { organizationSchema, breadcrumbSchema } from '@/lib/schema';
 import { EASE_LUXE } from '@/lib/motion';
 import { cn } from '@/lib/utils';
+import { PAGE_SEO } from '@/config/seo';
 
 /**
  * ─────────────────────────────────────────────────────────────────────────────
@@ -41,9 +42,7 @@ export default function Gallery() {
   return (
     <>
       <Seo
-        title="Gallery — Inside The School"
-        description="Espresso, latte art, brewing, bubble tea, milkshakes, tea and training at ISLII Barista School in Nairobi. See what the coursework actually looks like."
-        path="/gallery"
+        {...PAGE_SEO.gallery}
         jsonLd={[
           organizationSchema(),
           breadcrumbSchema([

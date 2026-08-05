@@ -164,10 +164,31 @@ export function Footer() {
           <p className="font-sans text-[0.8125rem] text-cream-200/40">
             © {new Date().getFullYear()} {site.legalName}. All rights reserved.
           </p>
-          <p className="font-sans text-[0.8125rem] text-cream-200/40">
-            Crafted by{' '}
-            <span className="text-cream-200/65">Lenzro Software Solutions</span>
-          </p>
+
+          {/* Both of these were reachable only by typing the URL.
+              `/verify` is the school's proof of itself: an employer holding a
+              printed certificate needs somewhere to check it, and the QR only
+              helps the person who can scan it. `/admin` is where staff sign in
+              — hiding it protects nothing, because the security boundary is the
+              database's row-level policies, not the obscurity of a path. */}
+          <nav aria-label="Utility" className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <Link
+              to="/verify"
+              className="font-sans text-[0.8125rem] text-cream-200/55 underline-offset-4 transition-colors hover:text-cream-100 hover:underline"
+            >
+              Verify a certificate
+            </Link>
+            <Link
+              to="/admin"
+              className="font-sans text-[0.8125rem] text-cream-200/40 underline-offset-4 transition-colors hover:text-cream-100 hover:underline"
+            >
+              Staff sign in
+            </Link>
+            <p className="font-sans text-[0.8125rem] text-cream-200/40">
+              Crafted by{' '}
+              <span className="text-cream-200/65">Lenzro Software Solutions</span>
+            </p>
+          </nav>
         </div>
       </div>
     </footer>

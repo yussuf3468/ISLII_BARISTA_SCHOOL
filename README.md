@@ -1,7 +1,30 @@
-# ISLII BARISTA SCHOOL — Website
+# ISLII BARISTA SCHOOL — Website & Student Management System
 
-Production website for ISLII Barista School, Nairobi.
-React 18 · TypeScript · Vite 6 · Tailwind CSS v4 · Framer Motion 11.
+Production website **and** student management system for ISLII Barista School,
+Nairobi. React 18 · TypeScript · Vite 6 · Tailwind CSS v4 · Framer Motion 11 ·
+Supabase.
+
+| Area | Routes | Notes |
+|------|--------|-------|
+| Marketing site | `/`, `/about`, `/courses`, `/gallery`, `/faq`, `/contact` | Static, no backend needed |
+| Certificate verification | `/verify`, `/verify/:token` | Public. `/verify/:token` is what the QR on a certificate opens |
+| Student management | `/admin/*` | Staff only, lazy-loaded, Supabase-backed |
+
+The admin covers students, courses, intakes, enrolments, **fees and payments**,
+**attendance**, **grades**, certificates, team roles and an audit log.
+
+### Start here
+
+| Document | For |
+|---|---|
+| **[`HANDOVER.md`](HANDOVER.md)** | **Taking ownership** — accounts, deployment, backups, what must never change |
+| **[`docs/SYSTEM-DISCLOSURE-AND-ACCEPTANCE.md`](docs/SYSTEM-DISCLOSURE-AND-ACCEPTANCE.md)** | **Send this to the client.** What was built, what it holds, the known risks, who is responsible for what, and a sign-off page |
+| [`docs/ADMIN-GUIDE.md`](docs/ADMIN-GUIDE.md) | The school's staff, day to day. No technical knowledge assumed |
+| [`supabase/README.md`](supabase/README.md) | Backend setup in detail — migrations, Edge Function, storage |
+| [`docs/STUDENT-SYSTEM-PLAN.md`](docs/STUDENT-SYSTEM-PLAN.md) | Why the system is shaped the way it is |
+
+The marketing site runs without a backend; `/admin` explains what is missing
+until one is configured.
 
 ```bash
 npm install
@@ -21,8 +44,8 @@ Everything below is a real value that needs confirming. Search the codebase for
 | # | Item | Where | Status |
 |---|------|-------|--------|
 | 1 | **Street address** | `src/config/site.ts` → `address` | Placeholder — currently "Nairobi CBD". Drives the Google Map, the Contact page and LocalBusiness schema. Add the exact address **and** the lat/lng (right-click the pin in Google Maps → copy coordinates). |
-| 2 | **Graduation / employment rates** | `src/config/site.ts` → `stats` | 98% and 92% are **our drafts, not measured figures**. Published statistics are a claim you have to be able to stand behind. Confirm, correct, or tell us to remove them. |
-| 3 | **Testimonials** | `src/data/testimonials.ts` | Every quote is **placeholder copy**. Replace with real, permissioned quotes before launch. |
+| 2 | **Graduation / employment rates** | `src/data/stats.ts` | **REMOVED — not pending.** 98% / 92% were our drafts and were never measured by anyone, so they were taken out rather than shipped behind a TODO. Add back only with the cohort and period actually measured. |
+| 3 | **Testimonials** | `src/data/testimonials.ts` | **Section does not render.** The live array is empty; our drafts are kept as `DRAFT_EXAMPLES` for format reference only. Add real, permissioned quotes and it reappears automatically. |
 | 4 | **Standalone course fees** | `src/data/courses.ts` | The brochures price the Full Course + the two Pastry classes. If Barista / Mixology / Boba can be booked separately, send fees + durations. |
 | 5 | **"Chantilly Butter"** | `src/data/courses.ts` → Class Two menu | The brochure reads "Chande / Chanade Butter". Confirm the correct name. |
 | 6 | **Mojito / Piña Colada** | `src/data/courses.ts` | Written as the **non-alcoholic** café versions. Say the word if that's wrong. |

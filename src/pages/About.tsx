@@ -10,6 +10,7 @@ import { Reveal, RevealGroup, RevealItem } from '@/components/ui/Reveal';
 import { Button } from '@/components/ui/Button';
 import { MaskedText } from '@/components/ui/MaskedText';
 import { site } from '@/config/site';
+import { PAGE_SEO } from '@/config/seo';
 import { organizationSchema, breadcrumbSchema } from '@/lib/schema';
 
 const principles = [
@@ -40,9 +41,7 @@ export default function About() {
   return (
     <>
       <Seo
-        title="About Us — Nairobi's Professional Coffee Academy"
-        description={`${site.name} trains baristas to international standards in Nairobi. Small classes, commercial equipment, practical assessment, and career support that continues after graduation.`}
-        path="/about"
+        {...PAGE_SEO.about}
         jsonLd={[
           organizationSchema(),
           breadcrumbSchema([

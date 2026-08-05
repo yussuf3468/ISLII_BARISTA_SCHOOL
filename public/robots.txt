@@ -1,5 +1,22 @@
 User-agent: *
 Allow: /
 
-# Nothing here is private; the whole site is meant to be indexed.
+# ── Staff area ───────────────────────────────────────────────────────────────
+# Nothing to index and no reason to crawl it. This is housekeeping, not
+# security: /admin/login is compiled into the public JavaScript bundle, so it
+# was never actually hidden. What protects it is Supabase Auth plus the
+# row-level policies in the database — a signed-in account with the wrong role
+# can do nothing, whether or not it found the door.
+Disallow: /admin
+
+# ── Certificate results ──────────────────────────────────────────────────────
+# /verify itself is public and indexable ON PURPOSE — an employer searching for
+# "verify ISLII certificate" should land on it.
+#
+# The individual result pages beneath it are a different matter: each one shows
+# a graduate's full name and photograph. They already send `noindex`, but that
+# tag only helps a crawler that executes JavaScript, and not all of them do.
+# This line covers the rest.
+Disallow: /verify/
+
 Sitemap: https://isliibarista.com/sitemap.xml

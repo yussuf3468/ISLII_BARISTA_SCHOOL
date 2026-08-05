@@ -112,9 +112,9 @@ export const site = {
   stats: {
     /** Confirmed by the school. */
     studentsTrained: 500,
-    /** TODO_CLIENT: confirm — these two are our drafts, not measured figures. */
-    graduationRate: 98,
-    employmentRate: 92,
+    // `graduationRate` and `employmentRate` used to live here at 98% and 92%.
+    // Both were invented for the design and neither was ever measured, so they
+    // were removed rather than shipped behind a TODO. See src/data/stats.ts.
   },
 } as const;
 

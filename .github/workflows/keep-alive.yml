@@ -1,0 +1,57 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  Keep the Supabase project awake
+# ─────────────────────────────────────────────────────────────────────────────
+#  Supabase pauses free-tier projects after about a week with no database
+#  activity. For most side projects that is a shrug. Here it is not:
+#
+#    · The admin going to sleep is an inconvenience — someone clicks "restore".
+#    · CERTIFICATE VERIFICATION going to sleep is a credibility failure. An
+#      employer scans a graduate's QR, gets nothing, and has no way to tell
+#      that apart from a forged certificate.
+#
+#  A school does not touch its admin every week — term breaks, holidays, quiet
+#  months. So this pings the database every three days and the project never
+#  reaches the inactivity threshold.
+#
+#  This is a MITIGATION, not a fix. It costs nothing and it protects
+#  verification, but it does not give you backups (see backup.yml) and it
+#  depends on Supabase's current pause policy staying as it is. The real answer
+#  is a paid plan; this is what to do until there is one.
+# ─────────────────────────────────────────────────────────────────────────────
+name: Keep Supabase awake
+
+on:
+  schedule:
+    # 06:00 UTC every third day. Well inside the ~7-day window, with room for
+    # GitHub's scheduled-run delays on busy hours.
+    - cron: '0 6 */3 * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query the database
+        env:
+          URL: ${{ secrets.SUPABASE_URL }}
+          KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$URL" ] || [ -z "$KEY" ]; then
+            echo "::error::Set SUPABASE_URL and SUPABASE_ANON_KEY in repository secrets."
+            exit 1
+          fi
+
+          # Row-level security returns an empty set to an anonymous caller, and
+          # that is fine — the point is that PostgREST reached Postgres and ran
+          # a query. Activity is activity.
+          code=$(curl -sS -o /tmp/out.txt -w '%{http_code}' \
+            "$URL/rest/v1/courses?select=id&limit=1" \
+            -H "apikey: $KEY" -H "Authorization: Bearer $KEY" --max-time 30)
+
+          echo "HTTP $code"
+          if [ "$code" != "200" ]; then
+            echo "::error::Unexpected response — the project may already be paused."
+            cat /tmp/out.txt
+            exit 1
+          fi
+          echo "Project is awake."

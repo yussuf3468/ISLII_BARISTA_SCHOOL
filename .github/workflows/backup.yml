@@ -1,0 +1,79 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  Weekly database backup
+# ─────────────────────────────────────────────────────────────────────────────
+#  The free tier has no automatic backups, and this database holds the school's
+#  fee ledger — every receipt, every balance. Losing it means asking students to
+#  prove what they paid.
+#
+#  So: a weekly `pg_dump` kept as a GitHub artifact. Free, and enough to rebuild
+#  from if something goes badly wrong.
+#
+#  ── What this does NOT cover ──────────────────────────────────────────────
+#  · Storage buckets. Certificate PDFs and student photographs are files, not
+#    rows, and a database dump does not contain them. The certificates can be
+#    regenerated from their records; the photographs cannot. Download the
+#    `student-photos` bucket by hand once a term.
+#  · Point-in-time recovery. This is a weekly snapshot, so the worst case is
+#    losing six days of entries. A paid plan is what fixes that.
+#
+#  ── Test the restore ──────────────────────────────────────────────────────
+#  Download an artifact and restore it into a scratch Supabase project once,
+#  before you need to. An untested backup is a rumour.
+# ─────────────────────────────────────────────────────────────────────────────
+name: Backup database
+
+on:
+  schedule:
+    - cron: '0 2 * * 0'   # 02:00 UTC every Sunday
+  workflow_dispatch:
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Dump
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          for v in SUPABASE_ACCESS_TOKEN PROJECT_REF DB_PASSWORD; do
+            if [ -z "${!v}" ]; then
+              echo "::error::Missing repository secret: $v"
+              exit 1
+            fi
+          done
+
+          supabase link --project-ref "$PROJECT_REF" --password "$DB_PASSWORD"
+
+          # `--linked` rather than a hand-built --db-url.
+          #
+          # The obvious connection string is db.<ref>.supabase.co:5432, and on
+          # newer Supabase projects that host resolves to IPv6 ONLY. GitHub's
+          # runners are IPv4-only, so a dump built that way fails with a
+          # connection timeout that looks like a wrong password. Letting the CLI
+          # resolve the host means it picks the pooler when that is what the
+          # project needs, without this file having to know the region.
+          #
+          # Schema and data are dumped separately: the schema is what makes a
+          # restore reproducible rather than approximate.
+          supabase db dump --linked -f schema.sql
+          supabase db dump --linked -f data.sql --data-only
+
+          gzip data.sql schema.sql
+          echo "STAMP=$(date -u +%Y-%m-%d)" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: islii-db-backup-${{ env.STAMP }}
+          path: |
+            data.sql.gz
+            schema.sql.gz
+          # GitHub's maximum for a free plan. Roughly three months of history.
+          retention-days: 90

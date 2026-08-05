@@ -83,10 +83,20 @@ export function Logo({
  * The crest on its own, at display size. Used where the badge is the point
  * rather than a navigational mark — the About panel and the closing CTA seal.
  */
+/**
+ * NOTE: the caller supplies the width (`w-16`, `w-24`, …) and it is required.
+ *
+ * The base class list used to include `w-full`, which quietly broke every
+ * caller: Tailwind emits utilities in its own sort order, not the order they
+ * appear in the class attribute, so `w-full` won over a caller's `w-16` and the
+ * crest rendered at whatever its parent was wide — 340px on the sign-in screen.
+ * It only looked correct where the parent happened to be shrink-to-fit.
+ */
 export function Crest({
   className,
   sizes = '160px',
 }: {
+  /** Must include a width utility. */
   className?: string;
   sizes?: string;
 }) {
@@ -100,7 +110,7 @@ export function Crest({
       height={557}
       loading="lazy"
       decoding="async"
-      className={cn('h-auto w-full max-w-full', className)}
+      className={cn('h-auto max-w-full', className)}
     />
   );
 }

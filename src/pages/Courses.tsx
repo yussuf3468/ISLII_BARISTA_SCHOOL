@@ -7,14 +7,13 @@ import { RevealGroup, RevealItem } from '@/components/ui/Reveal';
 import { Button } from '@/components/ui/Button';
 import { courses } from '@/data/courses';
 import { courseListSchema, organizationSchema, breadcrumbSchema } from '@/lib/schema';
+import { PAGE_SEO } from '@/config/seo';
 
 export default function Courses() {
   return (
     <>
       <Seo
-        title="Barista, Beverage & Pastry Courses in Nairobi"
-        description="Professional training in Nairobi: the Full Barista & Beverage Course covering coffee, mixology and boba, plus two Pastry & Bakery classes. Hands-on, small groups, practical certification."
-        path="/courses"
+        {...PAGE_SEO.courses}
         jsonLd={[
           organizationSchema(),
           courseListSchema(courses),

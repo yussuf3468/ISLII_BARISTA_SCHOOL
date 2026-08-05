@@ -5,6 +5,7 @@ import { Container } from '@/components/ui/Section';
 import { MaskedText } from '@/components/ui/MaskedText';
 import { primaryNav } from '@/config/navigation';
 import { Link } from 'react-router-dom';
+import { PAGE_SEO } from '@/config/seo';
 
 /**
  * 404. Noindexed, on-brand, and genuinely useful — a dead end is a lost
@@ -14,9 +15,7 @@ export default function NotFound() {
   return (
     <>
       <Seo
-        title="Page Not Found"
-        description="That page doesn't exist. Browse our barista courses, gallery or contact us to enrol."
-        path="/404"
+        {...PAGE_SEO.notFound}
         noindex
       />
 

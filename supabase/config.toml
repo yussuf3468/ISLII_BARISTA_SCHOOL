@@ -1,0 +1,26 @@
+project_id = "islii-barista-school"
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  EDGE FUNCTIONS
+# ═══════════════════════════════════════════════════════════════════════════
+
+[functions.issue-certificate]
+# `verify_jwt = false` looks alarming and is, here, both correct and necessary.
+#
+# With it enabled (the default) Supabase's gateway checks for a JWT BEFORE the
+# request reaches our code — including on the browser's CORS preflight. A
+# preflight is an OPTIONS request that by specification carries no Authorization
+# header, so the gateway rejects it 401, the browser sees a preflight without
+# HTTP-OK status, and reports it as a CORS failure. The request never arrives.
+#
+# Turning it off does NOT make the function public. Authentication moved inside
+# the handler, where it can distinguish a preflight from a real call:
+#
+#   · a missing or malformed bearer token          → 401
+#   · a token that getUser() rejects               → 401
+#   · a profile whose role is not admin/registrar  → 403
+#
+# and every privileged write still runs through the service role, which exists
+# only in this function's environment. The check is the same; it simply happens
+# somewhere that can answer OPTIONS first.
+verify_jwt = false

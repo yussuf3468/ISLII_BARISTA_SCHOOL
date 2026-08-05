@@ -7,6 +7,7 @@ import { Reveal, RevealGroup, RevealItem } from '@/components/ui/Reveal';
 import { Button } from '@/components/ui/Button';
 import { WhatsAppGlyph, TikTokGlyph } from '@/components/ui/Glyphs';
 import { site, whatsappLink, mapEmbedSrc, mapDirectionsUrl } from '@/config/site';
+import { PAGE_SEO } from '@/config/seo';
 import { organizationSchema, contactPageSchema, breadcrumbSchema } from '@/lib/schema';
 
 const channels = [
@@ -44,9 +45,7 @@ export default function Contact() {
   return (
     <>
       <Seo
-        title="Contact & Enrol"
-        description={`Enrol at ${site.name} in Nairobi. Call ${site.phone.display}, message us on WhatsApp, or send an enquiry and we will reply with fees and the next intake dates.`}
-        path="/contact"
+        {...PAGE_SEO.contact}
         jsonLd={[
           organizationSchema(),
           contactPageSchema(),

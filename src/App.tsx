@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Outlet } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 import { Header } from '@/components/layout/Header';
@@ -12,7 +12,9 @@ import { pageTransition } from '@/lib/motion';
 import Home from '@/pages/Home';
 
 /* Home ships in the initial bundle because it is the landing page for almost
-   all traffic. Everything else is split out and fetched on navigation. */
+   all traffic. Everything else is split out and fetched on navigation —
+   including the entire admin app and the verification pages, so a marketing
+   visitor never downloads a byte of either. */
 const About = lazy(() => import('@/pages/About'));
 const Courses = lazy(() => import('@/pages/Courses'));
 const CourseDetail = lazy(() => import('@/pages/CourseDetail'));
@@ -20,6 +22,24 @@ const Gallery = lazy(() => import('@/pages/Gallery'));
 const Faq = lazy(() => import('@/pages/Faq'));
 const Contact = lazy(() => import('@/pages/Contact'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
+
+const VerifySearch = lazy(() => import('@/pages/verify/VerifySearch'));
+const VerifyResult = lazy(() => import('@/pages/verify/VerifyResult'));
+
+const AdminRoot = lazy(() => import('@/pages/admin/AdminRoot'));
+const AdminLayout = lazy(() => import('@/pages/admin/AdminLayout'));
+const AdminLogin = lazy(() => import('@/pages/admin/AdminLogin'));
+const Dashboard = lazy(() => import('@/pages/admin/Dashboard'));
+const Students = lazy(() => import('@/pages/admin/Students'));
+const StudentDetail = lazy(() => import('@/pages/admin/StudentDetail'));
+const Intakes = lazy(() => import('@/pages/admin/Intakes'));
+const AdminCourses = lazy(() => import('@/pages/admin/Courses'));
+const AdminFinance = lazy(() => import('@/pages/admin/Finance'));
+const AdminAttendance = lazy(() => import('@/pages/admin/Attendance'));
+const AdminGrades = lazy(() => import('@/pages/admin/Grades'));
+const AdminCertificates = lazy(() => import('@/pages/admin/Certificates'));
+const AdminSettings = lazy(() => import('@/pages/admin/Settings'));
+const AdminAudit = lazy(() => import('@/pages/admin/AuditLog'));
 
 /** Neutral espresso panel shown while a route chunk downloads. */
 function RouteFallback() {
@@ -43,8 +63,7 @@ function RouteFallback() {
  * drops back down when the new page mounts, so every navigation produced a
  * visible collapse-and-expand of the whole page.
  *
- * Mounting the new route immediately and fading it in has no such gap. The
- * transition is shorter, and the page never changes height on its own.
+ * Mounting the new route immediately and fading it in has no such gap.
  */
 function AnimatedPage({ children }: { children: React.ReactNode }) {
   return (
@@ -54,33 +73,76 @@ function AnimatedPage({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * The marketing chrome — header, footer, floating WhatsApp button.
+ *
+ * The admin and verification routes deliberately sit OUTSIDE this. A staff
+ * member working through a student list does not need a "Enrol Today" call to
+ * action, and an employer verifying a certificate should see the school's
+ * identity and the verdict — not a marketing navigation bar inviting them to
+ * browse courses.
+ */
+function PublicSite() {
+  return (
+    <>
+      <ScrollProgress />
+      <Header />
+      <main id="main">
+        <Outlet />
+      </main>
+      <Footer />
+      <WhatsAppFab />
+    </>
+  );
+}
+
 export default function App() {
   const location = useLocation();
 
   return (
     <>
-      <ScrollProgress />
       <ScrollToTop />
-      <Header />
 
-      <main id="main">
         <Suspense fallback={<RouteFallback />}>
-          {/* Keyed on pathname so each route remounts and replays its entrance. */}
-          <Routes location={location} key={location.pathname}>
-            <Route path="/" element={<AnimatedPage><Home /></AnimatedPage>} />
-            <Route path="/about" element={<AnimatedPage><About /></AnimatedPage>} />
-            <Route path="/courses" element={<AnimatedPage><Courses /></AnimatedPage>} />
-            <Route path="/courses/:slug" element={<AnimatedPage><CourseDetail /></AnimatedPage>} />
-            <Route path="/gallery" element={<AnimatedPage><Gallery /></AnimatedPage>} />
-            <Route path="/faq" element={<AnimatedPage><Faq /></AnimatedPage>} />
-            <Route path="/contact" element={<AnimatedPage><Contact /></AnimatedPage>} />
-            <Route path="*" element={<AnimatedPage><NotFound /></AnimatedPage>} />
+          <Routes location={location}>
+            {/* ── Marketing ──────────────────────────────────────────── */}
+            <Route element={<PublicSite />}>
+              <Route path="/" element={<AnimatedPage><Home /></AnimatedPage>} />
+              <Route path="/about" element={<AnimatedPage><About /></AnimatedPage>} />
+              <Route path="/courses" element={<AnimatedPage><Courses /></AnimatedPage>} />
+              <Route path="/courses/:slug" element={<AnimatedPage><CourseDetail /></AnimatedPage>} />
+              <Route path="/gallery" element={<AnimatedPage><Gallery /></AnimatedPage>} />
+              <Route path="/faq" element={<AnimatedPage><Faq /></AnimatedPage>} />
+              <Route path="/contact" element={<AnimatedPage><Contact /></AnimatedPage>} />
+              <Route path="*" element={<AnimatedPage><NotFound /></AnimatedPage>} />
+            </Route>
+
+            {/* ── Public certificate verification ────────────────────── */}
+            <Route path="/verify" element={<VerifySearch />} />
+            <Route path="/verify/:token" element={<VerifyResult />} />
+
+            {/* ── Student management ───────────────────────────────────
+                AdminRoot carries AuthProvider + React Query. Because it is a
+                lazy route element, neither Supabase nor TanStack Query is in
+                the bundle a marketing visitor downloads. */}
+            <Route path="/admin" element={<AdminRoot />}>
+              <Route path="login" element={<AdminLogin />} />
+              <Route element={<AdminLayout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="students" element={<Students />} />
+                <Route path="students/:id" element={<StudentDetail />} />
+                <Route path="courses" element={<AdminCourses />} />
+                <Route path="intakes" element={<Intakes />} />
+                <Route path="certificates" element={<AdminCertificates />} />
+                <Route path="attendance" element={<AdminAttendance />} />
+                <Route path="grades" element={<AdminGrades />} />
+                <Route path="finance" element={<AdminFinance />} />
+                <Route path="audit" element={<AdminAudit />} />
+                <Route path="settings" element={<AdminSettings />} />
+              </Route>
+            </Route>
           </Routes>
         </Suspense>
-      </main>
-
-      <Footer />
-      <WhatsAppFab />
     </>
   );
 }

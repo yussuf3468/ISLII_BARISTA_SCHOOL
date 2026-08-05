@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  robots.txt has always pointed at this file; it did not exist, so every
+  crawler that followed the reference got a 404.
+
+  Maintained by hand. If a page or a course is added, add it here — there is no
+  generator, and a sitemap that silently goes stale is worse than none.
+
+  Deliberately absent:
+    /admin/*        staff only, disallowed in robots.txt
+    /verify/:token  carries a graduate's name and photo (see robots.txt)
+
+  /verify itself IS listed: an employer looking for somewhere to check a
+  certificate should be able to find it.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <url>
+    <loc>https://isliibarista.com/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://isliibarista.com/courses</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://isliibarista.com/about</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://isliibarista.com/gallery</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://isliibarista.com/faq</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://isliibarista.com/contact</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://isliibarista.com/verify</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <!-- Course pages. Slugs mirror `slug` in src/data/courses.ts. -->
+  <url>
+    <loc>https://isliibarista.com/courses/full-barista-beverage-course</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://isliibarista.com/courses/barista-course</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://isliibarista.com/courses/mixology-course</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://isliibarista.com/courses/boba-course</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://isliibarista.com/courses/pastry-bakery-class-one</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://isliibarista.com/courses/pastry-bakery-class-two</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+</urlset>

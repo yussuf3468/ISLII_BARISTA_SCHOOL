@@ -13,3 +13,11 @@ Thumbs.db
 !.vscode/extensions.json
 .idea
 .claude
+# TypeScript incremental build cache — regenerated on every build.
+*.tsbuildinfo
+
+# The client's untouched camera originals (~52 MB). Kept on disk as the master
+# copies but never committed: the optimised WebP derivatives in public/images
+# are what the site actually serves, and git is a poor home for binaries this
+# size. Archive these alongside the handover, not in the repository.
+/media-originals
