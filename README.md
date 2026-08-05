@@ -43,7 +43,7 @@ Everything below is a real value that needs confirming. Search the codebase for
 
 | # | Item | Where | Status |
 |---|------|-------|--------|
-| 1 | **Street address** | `src/config/site.ts` → `address` | Placeholder — currently "Nairobi CBD". Drives the Google Map, the Contact page and LocalBusiness schema. Add the exact address **and** the lat/lng (right-click the pin in Google Maps → copy coordinates). |
+| 1 | **Street address** | `src/config/site.ts` → `address` | **DONE.** Major Muriithi Street, Eastleigh, Nairobi. Coordinates derived from the Google listing's Plus Code `PRHW+9V5` (≈3 m accurate). Postal code left empty rather than invented. |
 | 2 | **Graduation / employment rates** | `src/data/stats.ts` | **REMOVED — not pending.** 98% / 92% were our drafts and were never measured by anyone, so they were taken out rather than shipped behind a TODO. Add back only with the cohort and period actually measured. |
 | 3 | **Testimonials** | `src/data/testimonials.ts` | **Section does not render.** The live array is empty; our drafts are kept as `DRAFT_EXAMPLES` for format reference only. Add real, permissioned quotes and it reappears automatically. |
 | 4 | **Standalone course fees** | `src/data/courses.ts` | The brochures price the Full Course + the two Pastry classes. If Barista / Mixology / Boba can be booked separately, send fees + durations. |
@@ -53,7 +53,8 @@ Everything below is a real value that needs confirming. Search the codebase for
 
 Confirmed and already live: email `isliibaristaschool@gmail.com`, one number for
 both calls and WhatsApp (`+254 746 487 878`), TikTok, 500+ students, opened
-2024, and all six programmes with brochure durations.
+2024, all six programmes with brochure durations, the Eastleigh address and
+coordinates, and opening hours (weekdays 9am–10pm, closed at weekends).
 
 ---
 

@@ -62,37 +62,47 @@ export const site = {
   },
 
   /**
-   * TODO_CLIENT — replace with the exact street address.
-   * `mapQuery` drives the embedded Google Map; `geo` drives LocalBusiness schema.
-   * Get precise coords from Google Maps → right-click the pin → copy lat/lng.
+   * Confirmed from the school's Google Business listing.
+   *
+   * `geo` was derived from the listing's Plus Code `PRHW+9V5` (full code
+   * `6GCRPRHW+9V5`), which is exact to about 3 metres — considerably better
+   * than a street name alone, since Major Muriithi Street runs for some
+   * distance. `mapQuery` uses the same coordinates rather than the street
+   * name, so the pin lands on the building and not on the middle of the road.
+   *
+   * `postalCode` is intentionally empty: nobody supplied one, and inventing a
+   * plausible Eastleigh code would put a wrong value into the LocalBusiness
+   * structured data that Google reads. The field is optional there.
    */
   address: {
-    street: "Nairobi CBD",
+    street: "Major Muriithi Street",
+    neighbourhood: "Eastleigh",
     locality: "Nairobi",
     region: "Nairobi County",
-    postalCode: "00100",
+    postalCode: "",
     country: "Kenya",
     countryCode: "KE",
     /** Full one-line address for display + schema. */
-    full: "Nairobi CBD, Nairobi, Kenya",
-    /** URL-encoded query for the Google Maps embed. */
-    mapQuery: "Nairobi+CBD,+Nairobi,+Kenya",
-    geo: { latitude: -1.286389, longitude: 36.817223 },
+    full: "Major Muriithi Street, Eastleigh, Nairobi, Kenya",
+    /** Google Maps Plus Code from the business listing. */
+    plusCode: "PRHW+9V5",
+    /** Coordinates, URL-encoded — the most precise thing to point a map at. */
+    mapQuery: "-1.271612,36.847234",
+    geo: { latitude: -1.271612, longitude: 36.847234 },
   },
 
-  /** Opening hours — drives both the Contact page and LocalBusiness schema. */
+  /** Opening hours — drives both the Contact page and LocalBusiness schema.
+   *  Confirmed by the school: weekdays only, 9am to 10pm. Weekends closed. */
   hours: [
     {
       days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-      opens: "08:00",
-      closes: "18:00",
+      opens: "09:00",
+      closes: "22:00",
     },
-    { days: ["Saturday"], opens: "09:00", closes: "16:00" },
   ] as const,
   hoursDisplay: [
-    { label: "Monday — Friday", value: "8:00 AM — 6:00 PM" },
-    { label: "Saturday", value: "9:00 AM — 4:00 PM" },
-    { label: "Sunday", value: "Closed" },
+    { label: "Monday — Friday", value: "9:00 AM — 10:00 PM" },
+    { label: "Saturday & Sunday", value: "Closed" },
   ],
 
   /* ── Social ──────────────────────────────────────────────────────────── */

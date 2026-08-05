@@ -129,7 +129,6 @@ export default function Contact() {
                       <MapPin className="size-3.5" aria-hidden="true" />
                       Address
                     </dt>
-                    {/* TODO_CLIENT: swap for the exact street address in config/site.ts */}
                     <dd className="mt-2.5 font-sans text-[0.9375rem] leading-relaxed text-cream-200/70">
                       {site.address.full}
                     </dd>

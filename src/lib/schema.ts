@@ -38,7 +38,9 @@ function postalAddress(): JsonLd {
     streetAddress: site.address.street,
     addressLocality: site.address.locality,
     addressRegion: site.address.region,
-    postalCode: site.address.postalCode,
+    // Omitted entirely when unknown. An empty string in structured
+    // data is worse than an absent field — it asserts "no postcode".
+    ...(site.address.postalCode ? { postalCode: site.address.postalCode } : {}),
     addressCountry: site.address.countryCode,
   };
 }
