@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Wallet, Receipt, TrendingUp, AlertCircle, Users, ArrowRight } from 'lucide-react';
+import {
+  Wallet, Receipt, TrendingUp, AlertCircle, Users, ArrowRight,
+  ArrowDownRight, Scale, List, CreditCard,
+} from 'lucide-react';
 import {
   fetchFinanceStats, fetchStudentFinance, fetchRecentPayments, kes, kesShort,
-  type FeeFilter,
+  expenseCategoryLabel, type FeeFilter,
 } from '@/features/admin/finance';
+import { ExpensePanel } from '@/components/admin/ExpensePanel';
 import {
   PageHeader, MetricGrid, Metric, MetricSkeleton, Panel, Table, Th, Td, Tr,
   Avatar, Toolbar, SearchInput, SelectFilter, EmptyState, ErrorNote,
-  TableSkeleton, ProgressBar, MobileList, MobileRow,
+  TableSkeleton, ProgressBar, MobileList, MobileRow, Segmented,
 } from '@/components/admin/AdminUI';
 import { publicFileUrl, readableError } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
@@ -26,6 +30,10 @@ export default function Finance() {
   const [search, setSearch] = useState('');
   const [debounced, setDebounced] = useState('');
   const [filter, setFilter] = useState<FeeFilter>('owing');
+  /* Income and expenses are two different jobs — chasing arrears versus
+     entering a supplier invoice — so they get one page and two modes rather
+     than one very long page. */
+  const [view, setView] = useState<'income' | 'expenses'>('income');
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(search), 300);
@@ -55,7 +63,18 @@ export default function Finance() {
       <PageHeader
         eyebrow="Money"
         title="Finance"
-        subtitle="Tuition billed, collected and outstanding across every enrolment."
+        subtitle="What the school has taken in, what it has spent, and what it kept."
+        actions={
+          <Segmented
+            label="Finance view"
+            value={view}
+            onChange={setView}
+            options={[
+              { value: 'income', label: 'Income & fees', Icon: CreditCard },
+              { value: 'expenses', label: 'Expenses', Icon: List },
+            ]}
+          />
+        }
       />
 
       {stats.isError && (
@@ -65,19 +84,21 @@ export default function Finance() {
       )}
 
       {stats.isLoading ? (
-        <MetricSkeleton count={4} />
+        <MetricSkeleton count={6} />
       ) : s ? (
         <MetricGrid>
-          <Metric index={0} label="Billed" value={kesShort(s.billed)} hint="Total tuition agreed" Icon={Receipt} />
-          <Metric index={1} label="Collected" value={kesShort(s.collected)} hint={`${collectionRate}% of billed`} Icon={Wallet} />
-          <Metric index={2} label="Outstanding" value={kesShort(s.outstanding)} hint={`${s.in_arrears} student${s.in_arrears === 1 ? '' : 's'} owing`} Icon={AlertCircle} />
-          <Metric index={3} label="Last 30 days" value={kesShort(s.collected_30d)} hint="Received this month" Icon={TrendingUp} />
+          <Metric index={0} label="Collected" value={kesShort(s.collected)} hint={`${collectionRate}% of ${kesShort(s.billed)} billed`} Icon={Wallet} to="/admin/finance" />
+          <Metric index={1} label="Outstanding" value={kesShort(s.outstanding)} hint={`${s.in_arrears} student${s.in_arrears === 1 ? '' : 's'} owing`} Icon={AlertCircle} />
+          <Metric index={2} label="Spent" value={kesShort(s.spent)} hint="All recorded costs" Icon={ArrowDownRight} />
+          <Metric index={3} label="Net" value={kesShort(s.net)} hint="Collected minus spent" Icon={Scale} />
+          <Metric index={4} label="In, 30 days" value={kesShort(s.collected_30d)} hint="Fees received" Icon={TrendingUp} />
+          <Metric index={5} label="Out, 30 days" value={kesShort(s.spent_30d)} hint="Costs recorded" Icon={Receipt} />
         </MetricGrid>
       ) : null}
 
       {/* Collection progress. One bar says more than the three numbers above it
           — it is the only place the ratio is visible rather than inferred. */}
-      {s && s.billed > 0 && (
+      {view === 'income' && s && s.billed > 0 && (
         <div className="mt-4 rounded-xl bg-white p-4 ring-1 ring-[rgba(9,9,11,0.09)] shadow-[0_1px_1px_rgba(9,9,11,0.03),0_2px_4px_rgba(9,9,11,0.03),0_8px_16px_-6px_rgba(9,9,11,0.07)]">
           <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
             <span className="font-sans text-[0.875rem] font-semibold text-slate-900">
@@ -92,7 +113,48 @@ export default function Finance() {
         </div>
       )}
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-3">
+      {view === 'expenses' && (
+        <div className="mt-4">
+          <ExpensePanel />
+
+          {/* Where the money went. Sorted biggest first — the point of a
+              breakdown is to find the line worth arguing about. */}
+          {s && Object.keys(s.by_category).length > 0 && (
+            <div className="mt-4">
+              <Panel title="Spending by category" description={`${kes(s.spent)} total`}>
+                <ul className="divide-y divide-[rgba(9,9,11,0.06)]">
+                  {Object.entries(s.by_category)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([cat, amount]) => {
+                      const share = s.spent > 0 ? (amount / s.spent) * 100 : 0;
+                      return (
+                        <li key={cat} className="px-4 py-3 sm:px-5">
+                          <div className="mb-1.5 flex items-baseline justify-between gap-3">
+                            <span className="font-sans text-[0.875rem] text-slate-900">
+                              {expenseCategoryLabel(cat as never)}
+                            </span>
+                            <span className="font-sans text-[0.8125rem] text-slate-500 tabular-nums">
+                              <span className="font-medium text-slate-900">{kes(amount)}</span>
+                              <span className="ml-2">{Math.round(share)}%</span>
+                            </span>
+                          </div>
+                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-400/12">
+                            <div
+                              className="h-full rounded-full bg-slate-700"
+                              style={{ width: `${share}%` }}
+                            />
+                          </div>
+                        </li>
+                      );
+                    })}
+                </ul>
+              </Panel>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className={cn('mt-4 grid gap-4 xl:grid-cols-3', view !== 'income' && 'hidden')}>
         {/* ── Student balances ─────────────────────────────────────────── */}
         <div className="xl:col-span-2">
           <Toolbar>

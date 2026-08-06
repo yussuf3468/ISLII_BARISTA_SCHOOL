@@ -43,6 +43,7 @@ In **SQL Editor**, run each file once, in order:
 | 5 | `migrations/0005_finance_attendance_grades.sql` | Course fees, the payments ledger, attendance, assessments |
 | 6 | `migrations/0006_finance_functions_rls.sql` | Their functions, views and **security policies** |
 | 7 | `migrations/0007_pricing_integrity.sql` | Cohort pricing, nullable fees, and two data-loss fixes |
+| 8 | `migrations/0008_expenses.sql` | The expenses ledger, spending categories, and per-cohort margin |
 
 Or with the CLI:
 
@@ -51,7 +52,7 @@ supabase link --project-ref <ref>
 supabase db push
 ```
 
-> **Run all seven, in order, and do not skip `0003` or `0006`.** Until those run
+> **Run all eight, in order, and do not skip `0003` or `0006`.** Until those run
 > the tables they cover have no policies and no protection.
 >
 > **`0007` is not optional and should run before real data goes in.** It stops

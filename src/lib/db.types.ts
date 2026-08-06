@@ -214,6 +214,14 @@ export interface FinanceStats {
   unpriced: number;
   collected_30d: number;
   by_method: Partial<Record<PaymentMethod, number>>;
+
+  /* ── Money out ─────────────────────────────────────────────────────── */
+  spent: number;
+  spent_30d: number;
+  /** Collected minus spent. Deliberately NOT billed minus spent — an unpaid
+   *  invoice does not buy coffee beans. */
+  net: number;
+  by_category: Partial<Record<ExpenseCategory, number>>;
 }
 
 export interface AttendanceRow {
@@ -282,4 +290,40 @@ export interface StudentFinanceRow {
   paid_kes: number;
   balance_kes: number;
   last_paid_on: string | null;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EXPENSES  (migration 0008)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+export type ExpenseCategory =
+  | 'ingredients' | 'equipment' | 'rent' | 'utilities' | 'salaries'
+  | 'marketing' | 'maintenance' | 'transport' | 'licences' | 'other';
+
+export interface Expense {
+  id: string;
+  expense_no: string;
+  category: ExpenseCategory;
+  description: string;
+  amount_kes: number;
+  spent_on: string;
+  vendor: string | null;
+  method: PaymentMethod;
+  reference: string | null;
+  intake_id: string | null;
+  note: string | null;
+  created_at: string;
+  created_by: string | null;
+}
+
+/** One row of `intake_finance` — what a cohort brought in against what it cost. */
+export interface IntakeFinance {
+  intake_id: string;
+  code: string;
+  billed_kes: number;
+  collected_kes: number;
+  /** Only costs explicitly attributed to this intake. Rent and power are not
+   *  apportioned, so this is direct cost, not true profit. */
+  direct_costs_kes: number;
+  margin_kes: number;
 }

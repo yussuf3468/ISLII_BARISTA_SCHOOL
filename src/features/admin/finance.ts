@@ -1,8 +1,9 @@
 import { db } from '@/lib/supabase';
 import type {
   Assessment, AssessmentScore, AttendanceRow, AttendanceState, Course,
-  EnrollmentAttendance, EnrollmentFinance, EnrollmentGrades, FinanceStats,
-  Payment, PaymentMethod, StudentFinanceRow,
+  EnrollmentAttendance, EnrollmentFinance, EnrollmentGrades, Expense,
+  ExpenseCategory, FinanceStats, IntakeFinance, Payment, PaymentMethod,
+  StudentFinanceRow,
 } from '@/lib/db.types';
 
 /**
@@ -129,6 +130,13 @@ export async function fetchFinanceStats(): Promise<FinanceStats> {
     outstanding: num(d.outstanding),
     in_arrears: num(d.in_arrears),
     unpriced: num(d.unpriced),
+    spent: num(d.spent),
+    spent_30d: num(d.spent_30d),
+    net: num(d.net),
+    by_category: Object.fromEntries(
+      Object.entries((d.by_category ?? {}) as Record<string, unknown>)
+        .map(([k, v]) => [k, num(v)]),
+    ) as FinanceStats['by_category'],
     collected_30d: num(d.collected_30d),
     by_method: Object.fromEntries(
       Object.entries((d.by_method ?? {}) as Record<string, unknown>)
@@ -646,3 +654,121 @@ export const kesShort = (n: number) => {
   if (abs >= 10_000) return `KES ${(n / 1000).toFixed(0)}K`;
   return kes(n);
 };
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EXPENSES — money out
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/** Display order is roughly "how often a school touches it", not alphabetical. */
+export const EXPENSE_CATEGORIES: Array<{ value: ExpenseCategory; label: string }> = [
+  { value: 'ingredients', label: 'Ingredients & supplies' },
+  { value: 'equipment', label: 'Equipment' },
+  { value: 'salaries', label: 'Salaries & tutors' },
+  { value: 'rent', label: 'Rent' },
+  { value: 'utilities', label: 'Utilities' },
+  { value: 'maintenance', label: 'Maintenance & repairs' },
+  { value: 'transport', label: 'Transport' },
+  { value: 'marketing', label: 'Marketing' },
+  { value: 'licences', label: 'Licences & permits' },
+  { value: 'other', label: 'Other' },
+];
+
+export const expenseCategoryLabel = (c: ExpenseCategory) =>
+  EXPENSE_CATEGORIES.find((x) => x.value === c)?.label ?? c;
+
+export type ExpensePeriod = 'all' | 'month' | 'quarter' | 'year';
+
+export interface ExpenseQuery {
+  category?: ExpenseCategory | 'all';
+  period?: ExpensePeriod;
+  search?: string;
+}
+
+/** Start of the requested window, or null for "everything". */
+function periodStart(period: ExpensePeriod): string | null {
+  if (period === 'all') return null;
+  const d = new Date();
+  if (period === 'month') d.setMonth(d.getMonth() - 1);
+  if (period === 'quarter') d.setMonth(d.getMonth() - 3);
+  if (period === 'year') d.setFullYear(d.getFullYear() - 1);
+  return d.toISOString().slice(0, 10);
+}
+
+export async function fetchExpenses(q: ExpenseQuery = {}): Promise<Expense[]> {
+  let query = db()
+    .from('expenses')
+    .select('*')
+    .order('spent_on', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(500);
+
+  if (q.category && q.category !== 'all') query = query.eq('category', q.category);
+
+  const from = periodStart(q.period ?? 'all');
+  if (from) query = query.gte('spent_on', from);
+
+  if (q.search?.trim()) {
+    const t = q.search.trim();
+    query = query.or(`description.ilike.%${t}%,vendor.ilike.%${t}%,reference.ilike.%${t}%`);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data ?? []).map((e) => ({
+    ...(e as Expense),
+    amount_kes: num((e as Record<string, unknown>).amount_kes),
+  }));
+}
+
+export interface NewExpense {
+  category: ExpenseCategory;
+  description: string;
+  amount: number;
+  spent_on?: string;
+  vendor?: string | null;
+  method?: PaymentMethod;
+  reference?: string | null;
+  intake_id?: string | null;
+  note?: string | null;
+}
+
+export async function recordExpense(input: NewExpense): Promise<Expense> {
+  const { data, error } = await db().rpc('record_expense', {
+    p_category: input.category,
+    p_description: input.description,
+    p_amount: input.amount,
+    p_spent_on: input.spent_on ?? new Date().toISOString().slice(0, 10),
+    p_vendor: input.vendor ?? null,
+    p_method: input.method ?? 'cash',
+    p_reference: input.reference ?? null,
+    p_intake_id: input.intake_id ?? null,
+    p_note: input.note ?? null,
+  });
+  if (error) throw error;
+  return { ...(data as Expense), amount_kes: num((data as Record<string, unknown>).amount_kes) };
+}
+
+export async function deleteExpense(id: string, reason: string) {
+  const { error } = await db().rpc('delete_expense', { p_id: id, p_reason: reason });
+  if (error) throw error;
+}
+
+/** Per-cohort: fees collected against costs booked to that cohort. */
+export async function fetchIntakeFinance(): Promise<IntakeFinance[]> {
+  const { data, error } = await db()
+    .from('intake_finance')
+    .select('*')
+    .order('code', { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((r) => {
+    const x = r as Record<string, unknown>;
+    return {
+      intake_id: x.intake_id as string,
+      code: x.code as string,
+      billed_kes: num(x.billed_kes),
+      collected_kes: num(x.collected_kes),
+      direct_costs_kes: num(x.direct_costs_kes),
+      margin_kes: num(x.margin_kes),
+    };
+  });
+}
