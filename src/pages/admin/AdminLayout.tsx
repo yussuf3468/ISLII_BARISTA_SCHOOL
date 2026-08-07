@@ -14,6 +14,7 @@ import { CommandPalette, useCommandPalette } from '@/components/admin/CommandPal
 import { isBackendConfigured } from '@/lib/supabase';
 import { useLockBodyScroll } from '@/lib/hooks';
 import { EASE_LUXE } from '@/lib/motion';
+import { site } from '@/config/site';
 import { cn } from '@/lib/utils';
 
 /**
@@ -286,6 +287,36 @@ export default function AdminLayout() {
 
   useLockBodyScroll(menuOpen);
   useEffect(() => setMenuOpen(false), [location.pathname]);
+
+  /**
+   * The admin owns its own tab title.
+   *
+   * It never did, and that produced a genuinely confusing bug: refreshing any
+   * `/admin/...` route showed "Page Not Found" in the tab while the page itself
+   * rendered perfectly.
+   *
+   * The cause is the static build. Marketing routes are prerendered to real
+   * files, `/admin/*` deliberately is not, so a host asked for
+   * `/admin/students/<uuid>` finds no file and serves `404.html` — which is
+   * still the full app, so React boots and renders the right screen. But the
+   * title came baked into that shell, and nothing here ever replaced it.
+   *
+   * Setting it from the route fixes it whichever shell the host happened to
+   * serve, rather than depending on every host being configured with an SPA
+   * fallback. `<Seo>` is not used: it also writes canonical and Open Graph tags
+   * for crawlers, and the admin is `noindex` — it needs a title, not an
+   * identity on the web.
+   */
+  useEffect(() => {
+    const segments = location.pathname.split('/').filter(Boolean);
+    const last = segments[segments.length - 1] ?? 'admin';
+    const label =
+      CRUMB_LABELS[last] ??
+      // A trailing UUID is a record, not a page name; use its section instead.
+      (last.length > 20 ? CRUMB_LABELS[segments[segments.length - 2] ?? ''] ?? 'Record' : last);
+
+    document.title = `${label} — ${site.shortName} Admin`;
+  }, [location.pathname]);
 
   if (!isBackendConfigured) return <NotConfigured />;
 

@@ -198,6 +198,11 @@ export interface EnrollmentFinance {
   /** NULL when the enrolment has never been priced. 0 means genuinely free. */
   fee_raw: number | null;
   fee_kes: number;
+  /** Amount taken off the full price. 0 when no discount was given. */
+  discount_kes: number;
+  discount_reason: string | null;
+  /** fee_kes + discount_kes — what it would have cost at full price. */
+  list_fee_kes: number;
   receipts: number;
   paid_kes: number;
   balance_kes: number;
@@ -212,6 +217,9 @@ export interface FinanceStats {
   in_arrears: number;
   /** Enrolments with no fee set — money the school is not yet asking for. */
   unpriced: number;
+  /** Total taken off full prices across every enrolment. */
+  discounted: number;
+  discount_count: number;
   collected_30d: number;
   by_method: Partial<Record<PaymentMethod, number>>;
 

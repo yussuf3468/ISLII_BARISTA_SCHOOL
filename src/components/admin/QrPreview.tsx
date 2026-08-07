@@ -68,3 +68,30 @@ export function QrPreview({
     </div>
   );
 }
+
+/**
+ * Download the QR on its own, as a print-ready PNG.
+ *
+ * Generated fresh at 1024px rather than by scraping the SVG already on screen.
+ * The preview is 176px; upscaling that would produce a soft, unscannable image
+ * the moment anyone printed it larger than a stamp — and a QR that fails to
+ * scan is worse than no QR, because the person holding it believes it works.
+ *
+ * 1024px covers every realistic use: a poster, a certificate reprint, a
+ * WhatsApp message to a graduate. `margin: 4` is the quiet zone the QR
+ * specification requires — scanners need that white border to find the symbol
+ * at all, and cropping it off is the most common way a printed QR dies.
+ */
+export async function downloadQrPng(value: string, filename: string): Promise<void> {
+  const dataUrl = await QRCode.toDataURL(value, {
+    errorCorrectionLevel: 'M',
+    margin: 4,
+    width: 1024,
+    color: { dark: '#120d0a', light: '#ffffff' },
+  });
+
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = filename.endsWith('.png') ? filename : `${filename}.png`;
+  a.click();
+}

@@ -98,15 +98,25 @@ Point the host at:
 | Output directory | `dist` |
 | Node version | 20 or newer |
 
-**One host setting is not optional:** this is a single-page app, so every route
-must fall back to `/index.html`. Without it a visitor who refreshes on
-`/courses` or opens a QR link to `/verify/abc123` gets a 404 from the host
-before the app ever loads — certificate verification would appear broken to the
-exact person the school most wants to convince.
+**The SPA fallback is committed to the repository — do not remove it.**
 
-- Vercel / Netlify — automatic for SPAs, nothing to do.
-- Cloudflare Pages — set the SPA fallback in build settings.
-- Apache / nginx — add a rewrite of everything to `/index.html`.
+This is a single-page app, so any route without a prerendered file must be
+served `/index.html`. Without that, refreshing a deep page — or an employer
+opening a certificate QR at `/verify/<token>` — returns an **HTTP 404** from the
+host. The page still renders, because the 404 document *is* the app, so the
+fault hides easily. But link previewers, corporate proxies, security scanners
+and uptime monitors act on the status code, not on what appears afterwards.
+
+| Host | Handled by |
+|---|---|
+| **Vercel** | `vercel.json` — rewrite plus cache headers |
+| **Netlify / Cloudflare Pages** | `public/_redirects` |
+| Apache / nginx | Add a rewrite of everything to `/index.html` |
+
+**Vercel's Vite preset does not add this automatically**, which is why the file
+is committed rather than left to a dashboard setting somebody has to remember.
+Vercel checks the filesystem before rewrites, so the 13 prerendered pages and
+every hashed asset are still served directly.
 
 ---
 

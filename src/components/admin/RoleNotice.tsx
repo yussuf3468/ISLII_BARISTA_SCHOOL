@@ -20,13 +20,44 @@ import { cn } from '@/lib/utils';
  * ─────────────────────────────────────────────────────────────────────────────
  */
 export function RoleNotice() {
-  const { profile, session } = useAuth();
+  const { profile, session, profileError, retryProfile } = useAuth();
   const { copied, copy } = useCopy();
   const [open, setOpen] = useState(false);
 
   // Nothing to say for accounts that can work.
   if (profile && (profile.role === 'admin' || profile.role === 'registrar')) return null;
   if (!session) return null;
+
+  /* A profile that FAILED TO LOAD is not a profile that says "viewer".
+     Telling an admin on a bad connection that they have no permissions is
+     worse than saying nothing: they go and ask someone to change a role that
+     was never wrong. This branch says what actually happened and offers a
+     retry that does not need a full page reload. */
+  if (profileError) {
+    return (
+      <div
+        role="alert"
+        className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-amber-50 px-4 py-3 ring-1 ring-amber-600/20"
+      >
+        <div className="min-w-0">
+          <p className="font-sans text-[0.875rem] font-semibold text-amber-900">
+            Could not load your permissions
+          </p>
+          <p className="mt-0.5 font-sans text-[0.8125rem] text-amber-800">
+            This is a connection problem, not a change to your account — your role is
+            unchanged. Actions stay hidden until it loads.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={retryProfile}
+          className="h-9 shrink-0 rounded-lg bg-amber-900 px-4 font-sans text-[0.875rem] font-medium text-white transition-colors hover:bg-amber-800"
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
 
   const email = profile?.email ?? session.user.email ?? 'your@email.com';
   const missingProfile = !profile;

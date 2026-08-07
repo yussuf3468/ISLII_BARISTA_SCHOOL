@@ -130,6 +130,8 @@ export async function fetchFinanceStats(): Promise<FinanceStats> {
     outstanding: num(d.outstanding),
     in_arrears: num(d.in_arrears),
     unpriced: num(d.unpriced),
+    discounted: num(d.discounted),
+    discount_count: num(d.discount_count),
     spent: num(d.spent),
     spent_30d: num(d.spent_30d),
     net: num(d.net),
@@ -243,6 +245,9 @@ export async function fetchEnrollmentFinance(studentId: string): Promise<Enrollm
       intake_id: x.intake_id as string,
       fee_raw: numOrNull(x.fee_raw),
       fee_kes: num(x.fee_kes),
+      discount_kes: num(x.discount_kes),
+      discount_reason: (x.discount_reason as string) ?? null,
+      list_fee_kes: num(x.list_fee_kes),
       paid_kes: num(x.paid_kes),
       balance_kes: num(x.balance_kes),
       receipts: num(x.receipts),
@@ -350,12 +355,29 @@ export async function deletePayment(id: string, reason: string) {
   if (error) throw error;
 }
 
-/** Adjust the agreed fee on one enrolment — a discount, bursary or correction. */
-export async function setEnrollmentFee(enrollmentId: string, fee: number) {
-  const { error } = await db()
-    .from('enrollments')
-    .update({ fee_kes: fee })
-    .eq('id', enrollmentId);
+/**
+ * Set what a student owes, and record any discount with its reason.
+ *
+ * Goes through a function rather than a direct UPDATE so the change lands in
+ * the audit log with both the before and after figures. Changing what somebody
+ * owes is a financial decision, and the previous bare update left no trace of
+ * who reduced a fee or why.
+ */
+export async function setEnrollmentPricing(input: {
+  enrollmentId: string;
+  /** What the student will actually pay. */
+  fee: number;
+  /** Amount taken off the full price. 0 for none. */
+  discount?: number;
+  /** Required by the database whenever discount > 0. */
+  reason?: string | null;
+}) {
+  const { error } = await db().rpc('set_enrollment_pricing', {
+    p_enrollment_id: input.enrollmentId,
+    p_fee: input.fee,
+    p_discount: input.discount ?? 0,
+    p_reason: input.reason ?? null,
+  });
   if (error) throw error;
 }
 

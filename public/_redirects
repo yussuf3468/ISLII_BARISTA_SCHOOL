@@ -1,0 +1,7 @@
+# Netlify / Cloudflare Pages equivalent of the rewrite in vercel.json.
+# Harmless on Vercel, which ignores this file.
+#
+# 200, not 302: the app must be SERVED at the requested URL, not redirected
+# away from it. A redirect would rewrite the address bar and break a
+# certificate QR link that a graduate has already handed to an employer.
+/*    /index.html   200

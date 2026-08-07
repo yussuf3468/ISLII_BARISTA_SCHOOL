@@ -87,7 +87,7 @@ sent to any third party other than Supabase.
 
 ## 4. The database, in plain terms
 
-Twelve tables. The short version of each and, where relevant, the rule that
+Thirteen tables. The short version of each and, where relevant, the rule that
 protects it.
 
 | Table | Holds | Notes |
@@ -103,12 +103,17 @@ protects it.
 | `certificates` | Certificate number, verification token, PDF location, status | **Never deleted** (§4.3). |
 | `profiles` | Staff accounts and their role | |
 | `audit_log` | Who did what, when | Append-only; cannot be edited or deleted by anyone. |
-| `counters` | Sequential numbering for students, certificates and receipts | Touched only by the system, never by staff. |
+| `expenses` | Money out: what, how much, category, supplier, and optionally which cohort it was for | **Append-only**, exactly like `payments`. |
+| `counters` | Sequential numbering for students, certificates, receipts and expenses | Touched only by the system, never by staff. |
 
-Three read-only views (`enrollment_finance`, `enrollment_attendance`,
-`enrollment_grades`) calculate balances, attendance rates and final grades on
-demand. **No totals are stored.** A corrected or deleted payment can therefore
-never leave a stale balance behind.
+Four read-only views (`enrollment_finance`, `enrollment_attendance`,
+`enrollment_grades`, `intake_finance`) calculate balances, attendance rates,
+final grades and per-cohort margin on demand. **No totals are stored.** A
+corrected or deleted payment can therefore never leave a stale balance behind.
+
+`intake_finance` counts only costs explicitly booked to a cohort — rent and
+power are not apportioned, because any split would be invented. It is therefore
+**direct cost**, not true profit, and the screen says so.
 
 Three storage areas: `student-photos` (public), `certificates` (private — staff
 access only, via time-limited links), `brand` (public — the crest and fonts used
@@ -283,10 +288,24 @@ certificate handed to an employer in 2035 still points at them. Changing either
 invalidates every certificate issued before the change. If the School ever
 rebrands, the old domain must be kept alive and redirecting.
 
-### 7.5 The website requires JavaScript
+### 7.5 Older browsers cannot display the site
 
-Standard for modern websites. A visitor with JavaScript disabled sees a fallback
-message with the School's phone number and WhatsApp link.
+The site is built with Tailwind CSS v4, which requires **Safari 16.4+,
+Chrome 111+ or Firefox 128+** (it uses `color-mix()`, `@property` and cascade
+layers, which older engines do not understand). Roughly: an iPhone on iOS 16.4
+or later, released March 2023. Below that the site cannot render correctly, and
+no configuration change fixes it — only rebuilding on an older CSS framework
+would, which is a substantial piece of work.
+
+**What happens instead is handled.** A visitor whose browser cannot run the
+site — too old, JavaScript disabled, or a chunk that never downloads on a poor
+connection — previously saw a dark screen for ever, with no way to tell
+"loading" from "broken". They now get a plain page with the School's phone
+number, WhatsApp link, address and opening hours, so an incompatible device
+becomes a phone call rather than a lost enquiry.
+
+This matters more for the public website than the admin: staff can be asked to
+use a current browser, prospective students cannot.
 
 ### 7.6 Content still awaiting the School
 

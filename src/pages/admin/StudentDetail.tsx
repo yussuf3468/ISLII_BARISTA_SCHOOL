@@ -17,7 +17,7 @@ import {
 } from '@/components/admin/AdminUI';
 import { ActionMenu, AdminButton } from '@/components/admin/Menu';
 import { Modal, useConfirm } from '@/components/admin/Overlay';
-import { QrPreview } from '@/components/admin/QrPreview';
+import { QrPreview, downloadQrPng } from '@/components/admin/QrPreview';
 import { StudentFinance } from '@/components/admin/StudentFinance';
 import { useToast } from '@/components/admin/Toast';
 import { useAuth } from '@/features/auth/AuthProvider';
@@ -153,6 +153,7 @@ function EnrollmentCard({ enrollment, studentId }: { enrollment: EnrollmentDetai
   const { confirm, dialog } = useConfirm();
   const { copied, copy } = useCopy();
   const [qrFor, setQrFor] = useState<string | null>(null);
+  const [savingQr, setSavingQr] = useState(false);
 
   const refresh = () => {
     void qc.invalidateQueries({ queryKey: ['enrollments', studentId] });
@@ -312,12 +313,33 @@ function EnrollmentCard({ enrollment, studentId }: { enrollment: EnrollmentDetai
         description="This is the code printed on the certificate."
         size="sm"
         footer={
-          <AdminButton
-            Icon={copied ? Check : Copy}
-            onClick={() => { copy(qrFor ?? ''); toast.success('Link copied'); }}
-          >
-            {copied ? 'Copied' : 'Copy link'}
-          </AdminButton>
+          <>
+            <AdminButton
+              Icon={copied ? Check : Copy}
+              onClick={() => { copy(qrFor ?? ''); toast.success('Link copied'); }}
+            >
+              {copied ? 'Copied' : 'Copy link'}
+            </AdminButton>
+            {/* The QR on its own, separate from the certificate PDF. The school
+                needs it for a reprint, a poster, or to send a graduate their
+                own code over WhatsApp — none of which should require handing
+                over the whole certificate. */}
+            <AdminButton
+              variant="primary"
+              Icon={QrCode}
+              disabled={savingQr}
+              onClick={() => {
+                if (!qrFor) return;
+                setSavingQr(true);
+                downloadQrPng(qrFor, `qr-${enrollment.certificate?.certificate_no ?? 'certificate'}`)
+                  .then(() => toast.success('QR downloaded', 'Saved as a print-ready PNG.'))
+                  .catch((e) => toast.error('Could not download the QR', readableError(e)))
+                  .finally(() => setSavingQr(false));
+              }}
+            >
+              {savingQr ? 'Preparing…' : 'Download QR'}
+            </AdminButton>
+          </>
         }
       >
         {qrFor && (

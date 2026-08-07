@@ -1,14 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
-  Wallet, Plus, Receipt, Trash2, Pencil, CalendarCheck, ClipboardList,
+  Wallet, Plus, Receipt, Trash2, Pencil, CalendarCheck, ClipboardList, Tag,
 } from 'lucide-react';
 import {
   fetchEnrollmentFinance, fetchPayments, recordPayment, deletePayment,
-  setEnrollmentFee, fetchAttendanceSummary, fetchGradeSummary, kes,
+  setEnrollmentPricing, fetchAttendanceSummary, fetchGradeSummary, kes,
   DuplicateReferenceError,
 } from '@/features/admin/finance';
 import {
@@ -228,58 +228,203 @@ function PaymentModal({
   );
 }
 
+const DISCOUNT_REASONS = [
+  'Scholarship',
+  'Bursary / hardship',
+  'Returning student',
+  'Sibling / family',
+  'Staff or staff family',
+  'Group or corporate rate',
+  'Early payment',
+  'Promotional offer',
+  'Negotiated',
+] as const;
+
+/**
+ * Set a student's fee, expressed as a full price minus a discount.
+ *
+ * The old version asked for the final figure, which made staff do the sum
+ * themselves — and then threw away both the full price and the reason. "Why
+ * did these two students on the same cohort pay different amounts?" was
+ * unanswerable a term later.
+ *
+ * Entering the discount instead means the arithmetic is the computer's job,
+ * the full price survives, and the reason is recorded. A percentage is offered
+ * as a shortcut but is converted to an amount immediately: a stored percentage
+ * has to be recomputed to be useful and rounds differently every time it is
+ * read.
+ */
 function FeeModal({
-  open, onClose, studentId, enrollment, current,
+  open, onClose, studentId, enrollment, current, currentDiscount, currentReason,
 }: {
   open: boolean;
   onClose: () => void;
   studentId: string;
   enrollment: EnrollmentDetail | null;
   current: number;
+  currentDiscount: number;
+  currentReason: string | null;
 }) {
   const qc = useQueryClient();
   const toast = useToast();
-  const [fee, setFee] = useState(String(current));
+
+  const [listFee, setListFee] = useState('0');
+  const [discount, setDiscount] = useState('0');
+  const [reason, setReason] = useState('');
+  const [pct, setPct] = useState('');
+
+  useEffect(() => {
+    if (!open) return;
+    // The full price is what they owe plus whatever was already taken off.
+    setListFee(String(current + currentDiscount));
+    setDiscount(String(currentDiscount));
+    setReason(currentReason ?? '');
+    setPct('');
+  }, [open, current, currentDiscount, currentReason]);
+
+  const listNum = Number(listFee) || 0;
+  const discNum = Math.min(Number(discount) || 0, listNum);
+  const payable = Math.max(0, listNum - discNum);
+
+  /** Percentage is a convenience for typing, never a stored value. */
+  const applyPct = (raw: string) => {
+    setPct(raw);
+    const p = Number(raw);
+    if (Number.isFinite(p) && p >= 0 && p <= 100) {
+      setDiscount(String(Math.round(listNum * (p / 100))));
+    }
+  };
 
   const save = useMutation({
-    mutationFn: () => setEnrollmentFee(enrollment!.id, Number(fee)),
+    mutationFn: () =>
+      setEnrollmentPricing({
+        enrollmentId: enrollment!.id,
+        fee: payable,
+        discount: discNum,
+        reason: discNum > 0 ? reason : null,
+      }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['finance', studentId] });
       void qc.invalidateQueries({ queryKey: ['finance-stats'] });
       void qc.invalidateQueries({ queryKey: ['student-finance'] });
-      toast.success('Fee updated');
+      toast.success(
+        'Fee updated',
+        discNum > 0 ? `${kes(discNum)} discount recorded — ${reason}` : undefined,
+      );
       onClose();
     },
     onError: (e) => toast.error('Could not update the fee', readableError(e)),
   });
 
+  const needsReason = discNum > 0 && !reason.trim();
+  const changed =
+    listNum !== current + currentDiscount ||
+    discNum !== currentDiscount ||
+    reason !== (currentReason ?? '');
+
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title="Adjust the agreed fee"
+      title="Fee & discount"
       description={enrollment ? enrollment.intake.course.title : undefined}
-      size="sm"
-      dirty={fee !== String(current)}
+      dirty={changed}
       footer={
         <>
           <AdminButton variant="ghost" onClick={onClose}>Cancel</AdminButton>
-          <AdminButton variant="primary" disabled={save.isPending} onClick={() => save.mutate()}>
+          <AdminButton
+            variant="primary"
+            disabled={save.isPending || needsReason}
+            onClick={() => save.mutate()}
+          >
             {save.isPending ? 'Saving…' : 'Save fee'}
           </AdminButton>
         </>
       }
     >
-      <Field
-        label="Agreed fee (KES)" htmlFor="fee"
-        hint="Use this for a discount, bursary or an instalment arrangement. Payments already recorded are untouched."
-      >
-        <input
-          id="fee" type="number" min={0} step={500} autoFocus
-          value={fee} onChange={(e) => setFee(e.target.value)}
-          className={cn(inputClass, 'tabular-nums')}
-        />
-      </Field>
+      <div className="space-y-4">
+        <Field
+          label="Full price (KES)" htmlFor="listFee"
+          hint="What this programme normally costs."
+        >
+          <input
+            id="listFee" type="number" min={0} step={500} autoFocus
+            value={listFee} onChange={(e) => setListFee(e.target.value)}
+            className={cn(inputClass, 'tabular-nums')}
+          />
+        </Field>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Discount (KES)" htmlFor="discount">
+            <input
+              id="discount" type="number" min={0} step={500}
+              value={discount}
+              onChange={(e) => { setDiscount(e.target.value); setPct(''); }}
+              className={cn(inputClass, 'tabular-nums')}
+            />
+          </Field>
+
+          <Field label="…or as a %" htmlFor="pct" optional hint="Fills in the amount.">
+            <input
+              id="pct" type="number" min={0} max={100} step={5} placeholder="e.g. 20"
+              value={pct} onChange={(e) => applyPct(e.target.value)}
+              className={cn(inputClass, 'tabular-nums')}
+            />
+          </Field>
+        </div>
+
+        {discNum > 0 && (
+          <Field
+            label="Reason for the discount" htmlFor="reason"
+            error={needsReason ? 'A discount has to say why.' : undefined}
+            hint="Recorded permanently, so anyone reviewing the account later can see why."
+          >
+            <input
+              id="reason" list="discount-reasons" value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Choose one, or write your own"
+              className={cn(inputClass, needsReason && inputErrorClass)}
+            />
+            {/* A datalist, not a select: the listed reasons cover most cases
+                and keep the wording consistent, but a school will always have
+                one the list did not anticipate. */}
+            <datalist id="discount-reasons">
+              {DISCOUNT_REASONS.map((r) => <option key={r} value={r} />)}
+            </datalist>
+          </Field>
+        )}
+
+        {/* The arithmetic, shown rather than left to the operator. */}
+        <div className="rounded-lg bg-slate-50 p-3.5 ring-1 ring-[rgba(9,9,11,0.08)]">
+          <dl className="space-y-1.5 font-sans text-[0.8125rem] tabular-nums">
+            <div className="flex justify-between">
+              <dt className="text-slate-500">Full price</dt>
+              <dd className="text-slate-900">{kes(listNum)}</dd>
+            </div>
+            {discNum > 0 && (
+              <div className="flex justify-between">
+                <dt className="text-slate-500">Discount</dt>
+                <dd className="text-emerald-700">
+                  − {kes(discNum)}
+                  {listNum > 0 && (
+                    <span className="ml-1.5 text-slate-500">
+                      ({Math.round((discNum / listNum) * 100)}%)
+                    </span>
+                  )}
+                </dd>
+              </div>
+            )}
+            <div className="flex justify-between border-t border-[rgba(9,9,11,0.08)] pt-1.5">
+              <dt className="font-medium text-slate-900">Student pays</dt>
+              <dd className="font-semibold text-slate-900">{kes(payable)}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <p className="font-sans text-[0.75rem] text-slate-500">
+          Payments already recorded are untouched — only the balance recalculates.
+        </p>
+      </div>
     </Modal>
   );
 }
@@ -303,7 +448,9 @@ export function StudentFinance({
   const { confirm, dialog } = useConfirm();
   const [payOpen, setPayOpen] = useState(false);
   const [payFor, setPayFor] = useState<string | undefined>();
-  const [feeFor, setFeeFor] = useState<{ e: EnrollmentDetail; fee: number } | null>(null);
+  const [feeFor, setFeeFor] = useState<
+    { e: EnrollmentDetail; fee: number; discount: number; reason: string | null } | null
+  >(null);
 
   const finance = useQuery({
     queryKey: ['finance', studentId],
@@ -337,6 +484,7 @@ export function StudentFinance({
   const totalFee = fin.reduce((s, f) => s + f.fee_kes, 0);
   const totalPaid = fin.reduce((s, f) => s + f.paid_kes, 0);
   const balance = totalFee - totalPaid;
+  const totalDiscount = fin.reduce((s, f) => s + f.discount_kes, 0);
 
   const byEnrollment = new Map(fin.map((f) => [f.enrollment_id, f]));
   const attByEnrollment = new Map((attendance.data ?? []).map((a) => [a.enrollment_id, a]));
@@ -404,10 +552,17 @@ export function StudentFinance({
                     {balance < 0 ? `${kes(-balance)} credit` : kes(balance)}
                   </p>
                 </div>
-                <p className="font-sans text-[0.8125rem] text-slate-500 tabular-nums">
-                  <span className="font-medium text-slate-900">{kes(totalPaid)}</span>
-                  {' paid of '}{kes(totalFee)}
-                </p>
+                <div className="text-right">
+                  <p className="font-sans text-[0.8125rem] text-slate-500 tabular-nums">
+                    <span className="font-medium text-slate-900">{kes(totalPaid)}</span>
+                    {' paid of '}{kes(totalFee)}
+                  </p>
+                  {totalDiscount > 0 && (
+                    <p className="mt-0.5 font-sans text-[0.75rem] text-emerald-700 tabular-nums">
+                      after {kes(totalDiscount)} discount
+                    </p>
+                  )}
+                </div>
               </div>
               {totalFee > 0 && (
                 <div className="mt-3">
@@ -449,8 +604,13 @@ export function StudentFinance({
                                 onSelect: () => { setPayFor(e.id); setPayOpen(true); },
                               },
                               {
-                                label: 'Adjust agreed fee', Icon: Pencil,
-                                onSelect: () => setFeeFor({ e, fee: f?.fee_kes ?? 0 }),
+                                label: 'Fee & discount', Icon: Pencil,
+                                onSelect: () => setFeeFor({
+                                  e,
+                                  fee: f?.fee_kes ?? 0,
+                                  discount: f?.discount_kes ?? 0,
+                                  reason: f?.discount_reason ?? null,
+                                }),
                               },
                             ]}
                           />
@@ -467,12 +627,41 @@ export function StudentFinance({
                         <dt className="font-sans text-[0.6875rem] uppercase tracking-[0.1em] text-slate-500">
                           Fee
                         </dt>
-                        <dd className="mt-0.5 font-sans text-[0.875rem] text-slate-900 tabular-nums">
-                          {f && f.fee_kes > 0 ? kes(f.fee_kes) : <span className="text-slate-400">Not set</span>}
+                        {/* When a discount exists, the full price is struck
+                            through beside the payable figure. A reduced fee
+                            shown on its own looks like the price simply IS
+                            24,000 — the school loses any visible record that it
+                            gave something up, which is the whole reason the
+                            discount is stored. */}
+                        <dd className="mt-0.5 flex flex-wrap items-baseline gap-x-1.5 font-sans text-[0.875rem] text-slate-900 tabular-nums">
+                          {f && f.discount_kes > 0 && (
+                            <span className="text-[0.75rem] text-slate-400 line-through">
+                              {kes(f.list_fee_kes)}
+                            </span>
+                          )}
+                          {f && f.fee_kes > 0
+                            ? kes(f.fee_kes)
+                            : f && f.payment_status === 'free'
+                              ? <span className="text-emerald-700">Free</span>
+                              : <span className="text-slate-400">Not set</span>}
                         </dd>
+
+                        {f && f.discount_kes > 0 && (
+                          <dd className="mt-1 inline-flex max-w-full items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 font-sans text-[0.6875rem] font-medium text-emerald-800 ring-1 ring-emerald-600/20">
+                            <Tag className="size-2.5 shrink-0" aria-hidden="true" />
+                            <span className="truncate">
+                              {kes(f.discount_kes)} off
+                              {f.list_fee_kes > 0
+                                ? ` (${Math.round((f.discount_kes / f.list_fee_kes) * 100)}%)`
+                                : ''}
+                              {f.discount_reason ? ` · ${f.discount_reason}` : ''}
+                            </span>
+                          </dd>
+                        )}
+
                         {f && f.fee_kes > 0 && (
                           <dd className={cn(
-                            'font-sans text-[0.75rem] tabular-nums',
+                            'mt-1 font-sans text-[0.75rem] tabular-nums',
                             bal > 0 ? 'text-red-700' : 'text-emerald-700',
                           )}>
                             {bal > 0 ? `${kes(bal)} owing` : 'Paid up'}
@@ -482,7 +671,7 @@ export function StudentFinance({
                             enrolment. Saying so here beats letting someone fill
                             in a receipt and then be rejected. */}
                         {f && f.payment_status === 'unbilled' && (
-                          <dd className="font-sans text-[0.75rem] text-amber-700">
+                          <dd className="mt-1 font-sans text-[0.75rem] text-amber-700">
                             Set a fee before taking payment
                           </dd>
                         )}
@@ -574,6 +763,8 @@ export function StudentFinance({
         studentId={studentId}
         enrollment={feeFor?.e ?? null}
         current={feeFor?.fee ?? 0}
+        currentDiscount={feeFor?.discount ?? 0}
+        currentReason={feeFor?.reason ?? null}
       />
       {dialog}
     </>

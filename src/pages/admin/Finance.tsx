@@ -84,7 +84,7 @@ export default function Finance() {
       )}
 
       {stats.isLoading ? (
-        <MetricSkeleton count={6} />
+        <MetricSkeleton count={7} />
       ) : s ? (
         <MetricGrid>
           <Metric index={0} label="Collected" value={kesShort(s.collected)} hint={`${collectionRate}% of ${kesShort(s.billed)} billed`} Icon={Wallet} to="/admin/finance" />
@@ -93,6 +93,16 @@ export default function Finance() {
           <Metric index={3} label="Net" value={kesShort(s.net)} hint="Collected minus spent" Icon={Scale} />
           <Metric index={4} label="In, 30 days" value={kesShort(s.collected_30d)} hint="Fees received" Icon={TrendingUp} />
           <Metric index={5} label="Out, 30 days" value={kesShort(s.spent_30d)} hint="Costs recorded" Icon={Receipt} />
+          {/* Money the school chose not to charge. A discount is real income
+              forgone, and one that is never totalled is one nobody notices
+              growing. */}
+          <Metric
+            index={6}
+            label="Discounts"
+            value={kesShort(s.discounted)}
+            hint={`Given on ${s.discount_count} enrolment${s.discount_count === 1 ? '' : 's'}`}
+            Icon={Scale}
+          />
         </MetricGrid>
       ) : null}
 
