@@ -3,7 +3,7 @@ import type {
   Assessment, AssessmentScore, AttendanceRow, AttendanceState, Course,
   EnrollmentAttendance, EnrollmentFinance, EnrollmentGrades, Expense,
   ExpenseCategory, FinanceStats, IntakeFinance, Payment, PaymentMethod,
-  StudentFinanceRow,
+  IntakeWithCourse, StudentFinanceRow,
 } from '@/lib/db.types';
 
 /**
@@ -793,4 +793,115 @@ export async function fetchIntakeFinance(): Promise<IntakeFinance[]> {
       margin_kes: num(x.margin_kes),
     };
   });
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ONE COHORT'S STUDENTS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+export interface IntakeStudentRow {
+  enrollment_id: string;
+  student_id: string;
+  student_no: string;
+  first_name: string;
+  last_name: string;
+  phone: string | null;
+  photo_path: string | null;
+  status: 'enrolled' | 'completed' | 'withdrawn';
+  certificate_no: string | null;
+  certificate_status: 'valid' | 'revoked' | null;
+  fee_kes: number;
+  paid_kes: number;
+  balance_kes: number;
+  discount_kes: number;
+  attendance_pct: number | null;
+  sessions: number;
+  final_pct: number | null;
+}
+
+/**
+ * Everyone on one cohort, with the three numbers a tutor or registrar actually
+ * asks about: what they owe, whether they turn up, and how they are doing.
+ *
+ * Four queries rather than one giant embed. PostgREST can only embed across
+ * foreign keys, and `enrollment_finance` / `_attendance` / `_grades` are VIEWS
+ * with no FK to enrollments — so they cannot be joined in a single select.
+ * Fetching them in parallel and stitching by enrolment id is both faster than
+ * four sequential round trips and clearer than the alternative, which would be
+ * another database view whose only job is to widen this one.
+ */
+export async function fetchIntakeStudents(intakeId: string): Promise<IntakeStudentRow[]> {
+  const { data: enr, error } = await db()
+    .from('enrollments')
+    .select(`
+      id, status,
+      student:students ( id, student_no, first_name, last_name, phone, photo_path ),
+      certificate:certificates ( certificate_no, status )
+    `)
+    .eq('intake_id', intakeId);
+  if (error) throw error;
+
+  const rows = (enr ?? []) as Array<Record<string, unknown>>;
+  if (!rows.length) return [];
+
+  const ids = rows.map((r) => r.id as string);
+
+  const [fin, att, grd] = await Promise.all([
+    db().from('enrollment_finance').select('*').in('enrollment_id', ids),
+    db().from('enrollment_attendance').select('*').in('enrollment_id', ids),
+    db().from('enrollment_grades').select('*').in('enrollment_id', ids),
+  ]);
+
+  const byId = <T extends { enrollment_id: string }>(res: { data: unknown }) =>
+    new Map((((res.data ?? []) as T[])).map((r) => [r.enrollment_id, r]));
+
+  const f = byId<never>(fin) as Map<string, Record<string, unknown>>;
+  const a = byId<never>(att) as Map<string, Record<string, unknown>>;
+  const g = byId<never>(grd) as Map<string, Record<string, unknown>>;
+
+  return rows
+    .map((r) => {
+      const s = r.student as Record<string, unknown>;
+      const id = r.id as string;
+      const fi = f.get(id) ?? {};
+      const at = a.get(id) ?? {};
+      const gr = g.get(id) ?? {};
+
+      // A student may hold a revoked certificate and later a valid one; the
+      // live one is what the cohort list should show.
+      const certs = (r.certificate ?? []) as Array<Record<string, unknown>>;
+      const live = certs.find((c) => c.status === 'valid') ?? certs[0];
+
+      return {
+        enrollment_id: id,
+        student_id: s.id as string,
+        student_no: s.student_no as string,
+        first_name: s.first_name as string,
+        last_name: s.last_name as string,
+        phone: (s.phone as string) ?? null,
+        photo_path: (s.photo_path as string) ?? null,
+        status: r.status as IntakeStudentRow['status'],
+        certificate_no: (live?.certificate_no as string) ?? null,
+        certificate_status: (live?.status as 'valid' | 'revoked') ?? null,
+        fee_kes: num(fi.fee_kes),
+        paid_kes: num(fi.paid_kes),
+        balance_kes: num(fi.balance_kes),
+        discount_kes: num(fi.discount_kes),
+        attendance_pct: numOrNull(at.rate_pct),
+        sessions: num(at.sessions),
+        final_pct: numOrNull(gr.final_pct),
+      };
+    })
+    .sort((x, y) => x.last_name.localeCompare(y.last_name));
+}
+
+/** The cohort itself, for the detail page header. */
+export async function fetchIntake(intakeId: string) {
+  const { data, error } = await db()
+    .from('intakes')
+    .select('*, course:courses(id, title, slug, certification, duration, level)')
+    .eq('id', intakeId)
+    .single();
+  if (error) throw error;
+  return data as unknown as IntakeWithCourse;
 }

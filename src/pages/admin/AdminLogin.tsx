@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion } from 'framer-motion';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { Crest } from '@/components/layout/Logo';
 import { Button } from '@/components/ui/Button';
@@ -29,6 +29,7 @@ export default function AdminLogin() {
   const { session, signIn } = useAuth();
   const location = useLocation();
   const [formError, setFormError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -116,19 +117,42 @@ export default function AdminLogin() {
                 >
                   Password
                 </label>
+                {/* Typing a password blind on a phone keyboard is where most
+                    failed sign-ins come from, and this screen deliberately
+                    returns a generic error — so a typo is indistinguishable
+                    from a wrong account. Letting someone check what they typed
+                    removes that guesswork and weakens nothing: the value is
+                    already sitting in the field. */}
+                <div className="relative">
                 <input
                   id="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
                   aria-invalid={Boolean(errors.password)}
                   className={cn(
                     inputClass,
+                    'pr-12',
                     errors.password
                       ? 'border-red-400/60'
                       : 'border-slate-100/15 focus:border-gold-500',
                   )}
                   {...register('password')}
                 />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    // Announced, not implied — an icon alone tells a screen
+                    // reader nothing about which state it is currently in.
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-pressed={showPassword}
+                    // Out of the tab order so Tab still runs password → Sign in,
+                    // which is the path every returning user takes.
+                    tabIndex={-1}
+                    className="absolute inset-y-0 right-0 grid w-12 place-items-center text-slate-300/45 transition-colors hover:text-white"
+                  >
+                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
                 {errors.password && (
                   <p className="mt-1.5 font-sans text-[0.8125rem] text-red-300">
                     {errors.password.message}

@@ -81,7 +81,10 @@ function CourseModal({
          live account is never disturbed. */
       let repriced = 0;
       if (v.fee_kes > 0) {
-        repriced = await applyPendingFees({ courseId: course.id }).catch(() => 0);
+        /* Deliberately NOT swallowed. This used to be `.catch(() => 0)`,
+           which turned a failed re-price into a silent no-op — the fee
+           saved, no enrolment updated, and nothing said why. */
+        repriced = await applyPendingFees({ courseId: course.id });
       }
       return { course, repriced };
     },

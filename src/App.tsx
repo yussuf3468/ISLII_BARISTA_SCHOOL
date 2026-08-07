@@ -34,6 +34,7 @@ const Students = lazy(() => import('@/pages/admin/Students'));
 const StudentDetail = lazy(() => import('@/pages/admin/StudentDetail'));
 const Intakes = lazy(() => import('@/pages/admin/Intakes'));
 const AdminCourses = lazy(() => import('@/pages/admin/Courses'));
+const AdminIntakeDetail = lazy(() => import('@/pages/admin/IntakeDetail'));
 const AdminFinance = lazy(() => import('@/pages/admin/Finance'));
 const AdminAttendance = lazy(() => import('@/pages/admin/Attendance'));
 const AdminGrades = lazy(() => import('@/pages/admin/Grades'));
@@ -133,6 +134,7 @@ export default function App() {
                 <Route path="students/:id" element={<StudentDetail />} />
                 <Route path="courses" element={<AdminCourses />} />
                 <Route path="intakes" element={<Intakes />} />
+                <Route path="intakes/:id" element={<AdminIntakeDetail />} />
                 <Route path="certificates" element={<AdminCertificates />} />
                 <Route path="attendance" element={<AdminAttendance />} />
                 <Route path="grades" element={<AdminGrades />} />

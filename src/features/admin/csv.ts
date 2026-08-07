@@ -188,3 +188,54 @@ export const CSV_TEMPLATE =
   'first_name,last_name,phone,email,national_id,notes\n' +
   'Amina,Wanjiru,0712345678,amina@example.com,12345678,\n' +
   'Brian,Otieno,0723456789,,,Transferred from evening class\n';
+
+/**
+ * One cohort's roll, with the three figures a tutor is asked for.
+ *
+ * A separate export from `exportStudents` on purpose: that one is the registry
+ * (contact details, ID), this one is the class list (presence, marks, money).
+ * Merging them would give whoever opens the file half the columns they wanted
+ * and half they had no business circulating.
+ */
+export function exportIntakeStudents(
+  rows: Array<{
+    student_no: string;
+    first_name: string;
+    last_name: string;
+    phone: string | null;
+    status: string;
+    certificate_no: string | null;
+    attendance_pct: number | null;
+    final_pct: number | null;
+    fee_kes: number;
+    paid_kes: number;
+    balance_kes: number;
+  }>,
+  intakeCode: string,
+) {
+  downloadCsv(
+    `${intakeCode}-students-${new Date().toISOString().slice(0, 10)}.csv`,
+    toCsv(
+      rows.map((r) => ({
+        student_no: r.student_no,
+        first_name: r.first_name,
+        last_name: r.last_name,
+        phone: r.phone ?? '',
+        status: r.status,
+        certificate_no: r.certificate_no ?? '',
+        // Blank, not 0 — an unmarked student has no rate, and a zero here
+        // would read as "never attended" in a spreadsheet.
+        attendance_pct: r.attendance_pct ?? '',
+        final_pct: r.final_pct ?? '',
+        fee_kes: r.fee_kes,
+        paid_kes: r.paid_kes,
+        balance_kes: r.balance_kes,
+      })),
+      [
+        'student_no', 'first_name', 'last_name', 'phone', 'status',
+        'certificate_no', 'attendance_pct', 'final_pct',
+        'fee_kes', 'paid_kes', 'balance_kes',
+      ],
+    ),
+  );
+}

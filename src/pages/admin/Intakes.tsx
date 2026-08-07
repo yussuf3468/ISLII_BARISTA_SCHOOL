@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -108,8 +108,10 @@ function IntakeModal({
       // construction: only unpriced enrolments with no payments are touched.
       let repriced = 0;
       if (payload.fee_kes !== null && payload.fee_kes > 0) {
-        repriced = await applyPendingFees({ intakeId: (intake as { id: string }).id })
-          .catch(() => 0);
+        /* Deliberately NOT swallowed. This used to be `.catch(() => 0)`,
+           which turned a failed re-price into a silent no-op — the fee
+           saved, no enrolment updated, and nothing said why. */
+        repriced = await applyPendingFees({ intakeId: (intake as { id: string }).id });
       }
       return { intake, repriced };
     },
@@ -209,11 +211,12 @@ function IntakeModal({
 /* ── Card ─────────────────────────────────────────────────────────────── */
 
 function IntakeCard({
-  intake, stats, index, onEdit, onDelete, canManage,
+  intake, stats, index, onOpen, onEdit, onDelete, canManage,
 }: {
   intake: IntakeWithCourse;
   stats?: { enrolled: number; completed: number; withdrawn: number; certificates: number };
   index: number;
+  onOpen: () => void;
   onEdit: () => void;
   onDelete: () => void;
   canManage: boolean;
@@ -234,14 +237,22 @@ function IntakeCard({
       className="flex flex-col rounded-xl bg-slate-50 p-5 ring-1 ring-slate-300/12 transition-shadow duration-300 hover:shadow-[0_2px_4px_rgba(9,9,11,0.03),0_12px_24px_-8px_rgba(26,22,20,0.1)]"
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+        {/* A button, not a click handler on the whole card. The card also holds
+            an actions menu, and a card-wide handler means every attempt to
+            reach that menu is a near-miss away from navigating instead. */}
+        <button
+          type="button"
+          onClick={onOpen}
+          className="min-w-0 flex-1 text-left"
+          aria-label={`Open ${intake.code}`}
+        >
           <p className="font-sans text-[0.8125rem] font-medium text-slate-900 tabular-nums">
             {intake.code}
           </p>
           <p className="mt-0.5 truncate font-sans text-[0.8125rem] text-slate-500">
             {intake.course.title}
           </p>
-        </div>
+        </button>
         <div className="flex shrink-0 items-center gap-1">
           <Badge tone={intake.status} dot>{intake.status}</Badge>
           {canManage && (
@@ -303,6 +314,7 @@ function IntakeCard({
 /* ── Page ─────────────────────────────────────────────────────────────── */
 
 export default function Intakes() {
+  const navigate = useNavigate();
   const { can } = useAuth();
   const qc = useQueryClient();
   const toast = useToast();
@@ -450,6 +462,7 @@ export default function Intakes() {
               index={idx}
               stats={stats.data?.get(i.id)}
               canManage={can('admin', 'registrar')}
+              onOpen={() => navigate(`/admin/intakes/${i.id}`)}
               onEdit={() => { setEditing(i); setOpen(true); }}
               onDelete={() => void askDelete(i)}
             />
@@ -471,7 +484,7 @@ export default function Intakes() {
                 const completed = s?.completed ?? 0;
                 const rate = completed + enrolled > 0 ? Math.round((completed / (completed + enrolled)) * 100) : 0;
                 return (
-                  <Tr key={i.id}>
+                  <Tr key={i.id} onClick={() => navigate(`/admin/intakes/${i.id}`)}>
                     <Td className="font-medium text-slate-900 tabular-nums">{i.code}</Td>
                     <Td>{i.course.title}</Td>
                     <Td className="tabular-nums">{fmt(i.starts_on)} — {fmt(i.ends_on)}</Td>

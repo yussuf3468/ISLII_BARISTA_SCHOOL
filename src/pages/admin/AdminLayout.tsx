@@ -76,6 +76,7 @@ const CRUMB_LABELS: Record<string, string> = {
   students: 'Students',
   courses: 'Courses',
   intakes: 'Intakes',
+  // A UUID under /intakes resolves to 'Cohort' via the length check below.
   certificates: 'Certificates',
   attendance: 'Attendance',
   grades: 'Grades',
