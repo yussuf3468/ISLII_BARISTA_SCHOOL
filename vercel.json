@@ -1,32 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-
-  "_comment_rewrites": [
-    "Without this file every route that is not prerendered was served dist/404.html",
-    "with a real HTTP 404 status. The page still rendered — React booted and drew the",
-    "right screen — so it looked like nothing more than a wrong tab title. It was not.",
-    "",
-    "  · /admin/students/<uuid>  — the whole admin, 404 to every monitor and crawler",
-    "  · /verify/<token>         — EVERY CERTIFICATE QR LINK",
-    "",
-    "That second one is the reason this matters. A certificate's QR is the school's",
-    "proof of itself. An employer scanning one got a 404 from the server before the",
-    "app ever loaded, and link previewers, corporate proxies and security scanners act",
-    "on the status code, not on what renders afterwards.",
-    "",
-    "Vercel checks the filesystem BEFORE rewrites, so the 13 prerendered pages and",
-    "every hashed asset still win. Only genuinely unmatched paths fall through to the",
-    "app, which then routes them itself — including showing its own 404 screen."
-  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
-  ],
-
-  "_comment_headers": [
-    "Asset filenames carry a content hash, so a changed file is a changed URL and the",
-    "old one can be cached forever. HTML must NOT be: a stale document pins the asset",
-    "hashes it was built with, and a visitor holding one after a deploy fetches chunks",
-    "that no longer exist — the blank screen that looks like the app is broken."
   ],
   "headers": [
     {
